@@ -188,6 +188,7 @@ Key rules:
 - Separate `number` from `year`.
 - Use `DD/MM/YYYY` for issuance dates and `HH:MM` for times.
 - Preserve coordinates and personal/property identifiers as printed.
+- Validate coordinates geometrically (lat ≤ 90°, min/sec < 60); flag even when confidence is high.
 - Return `area_ha` and `fine_brl` as JSON numbers.
 - Do not confuse the inspection date with the issuance date.
 - Do not merge a referenced document number into the current document identity.
