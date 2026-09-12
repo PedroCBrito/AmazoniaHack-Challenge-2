@@ -1,0 +1,198 @@
+openapi: 3.1.0
+info:
+  title: Chandra OCR Wrapper
+  version: 0.1.0
+  description: >-
+    Project-defined private HTTP adapter around a pinned Chandra OCR runtime.
+    This is an intermediate OCR service, not the environmental field-extraction API.
+servers:
+  - url: http://127.0.0.1:9000
+    description: Local development
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Report OCR model readiness
+      responses:
+        "200":
+          description: Wrapper and OCR model are ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+        "503":
+          description: OCR model or inference backend is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /ocr:
+    post:
+      operationId: runOcr
+      summary: Recognize one JPEG or PNG document image
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - image
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: One image with media type image/jpeg or image/png
+      responses:
+        "200":
+          description: OCR inference completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OCRResult"
+        "413":
+          $ref: "#/components/responses/ImageTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/InvalidImage"
+        "429":
+          $ref: "#/components/responses/CapacityReached"
+        "500":
+          $ref: "#/components/responses/OcrFailed"
+        "503":
+          $ref: "#/components/responses/ModelNotReady"
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - status
+        - model_version
+      properties:
+        status:
+          type: string
+          const: ready
+        model_version:
+          type: string
+          description: Checkpoint name and immutable revision
+        device:
+          type: [string, "null"]
+          description: Optional non-sensitive compute-device description
+    OCRRegion:
+      type: object
+      additionalProperties: true
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          minLength: 1
+        text:
+          type: [string, "null"]
+        page:
+          type: integer
+          minimum: 1
+        kind:
+          type: string
+        bounding_box:
+          type: array
+          description: "[x_min, y_min, x_max, y_max] in post-orientation image pixels"
+          prefixItems:
+            - type: integer
+              minimum: 0
+            - type: integer
+              minimum: 0
+            - type: integer
+              minimum: 0
+            - type: integer
+              minimum: 0
+          minItems: 4
+          maxItems: 4
+    OCRResult:
+      type: object
+      additionalProperties: false
+      required:
+        - content
+        - regions
+        - model_version
+        - duration_ms
+        - warnings
+      properties:
+        content:
+          type: string
+        regions:
+          type: array
+          items:
+            $ref: "#/components/schemas/OCRRegion"
+        model_version:
+          type: string
+          minLength: 1
+        duration_ms:
+          type: integer
+          minimum: 0
+        warnings:
+          type: array
+          items:
+            type: string
+    ErrorDetail:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          minLength: 1
+        message:
+          type: string
+          minLength: 1
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - error
+      properties:
+        error:
+          $ref: "#/components/schemas/ErrorDetail"
+  responses:
+    ImageTooLarge:
+      description: Image exceeds a wrapper limit
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    UnsupportedMediaType:
+      description: Uploaded part is not JPEG or PNG
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InvalidImage:
+      description: Image is missing, corrupted, or undecodable
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    CapacityReached:
+      description: No inference slot is immediately available
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    OcrFailed:
+      description: Unexpected OCR inference failure
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    ModelNotReady:
+      description: Model or inference backend is unavailable
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+

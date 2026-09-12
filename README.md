@@ -6,7 +6,122 @@ The project uses **Chandra as a self-hosted OCR service** to read document image
 
 Every result is a draft for human review. Missing or uncertain information is reported explicitly.
 
-> Status: initial project idea.
+> Status: containerized FastAPI service scaffold. Image validation and the Chandra
+> HTTP client are implemented; OCR and compact text field mapping are intentionally
+> pending.
+
+## Running with Docker
+
+The recommended deployment keeps the API and OCR in separate containers on a
+private Compose network. The temporary OCR container is live but always returns
+`503 model_not_ready`; it never produces simulated OCR content.
+
+```bash
+docker compose build --pull
+docker compose up --detach
+```
+
+Open <http://127.0.0.1:8000/docs> for the API documentation. The API liveness probe
+is available at <http://127.0.0.1:8000/live>. Application health remains
+`degraded` until a real OCR image replaces the placeholder.
+
+See [`docs/docker.md`](docs/docker.md) for image targets, security decisions,
+operations, standalone builds, and instructions for replacing the OCR service.
+
+## Running the API locally
+
+Python 3.11 or newer is recommended. Create an isolated environment, install the
+development dependencies, copy the example configuration, and start Uvicorn:
+
+```bash
+python -m venv .venv
+
+# Linux/macOS
+source .venv/bin/activate
+cp .env.example .env
+
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+Copy-Item .env.example .env
+
+python -m pip install -r requirements-dev.txt
+uvicorn app.main:app --reload
+```
+
+The API documentation is then available at <http://127.0.0.1:8000/docs>.
+Run the contract tests with:
+
+```bash
+pytest
+```
+
+Configuration is read from `.env` or from environment variables prefixed with
+`APP_`. The most important setting is `APP_CHANDRA_BASE_URL`, which must point to
+the private project wrapper described below. File size, decoded pixel count,
+concurrency, dependency timeout, and total processing deadline are configurable;
+see [`.env.example`](.env.example) for all initial values.
+
+### Current project structure
+
+```text
+app/
+├── api/routes.py              # /live, /health, and /extract
+├── core/config.py             # validated APP_* settings
+├── core/errors.py             # consistent public error responses
+├── schemas/                   # OCR, extraction, health, and error contracts
+├── services/image_processor.py # byte/format/dimension validation and EXIF rotation
+├── services/ocr_client.py     # Chandra wrapper HTTP client
+├── services/field_mapper.py   # mapper boundary and safe pending implementation
+├── services/extraction.py     # deadline and concurrency orchestration
+└── main.py                    # FastAPI application factory
+ocr_placeholder/main.py       # explicit 503 service until Chandra is implemented
+docs/
+├── chandra-wrapper.md         # human-readable wrapper contract
+├── chandra-wrapper.openapi.yaml # machine-readable OpenAPI 3.1 contract
+└── docker.md                  # container build and operation guide
+Dockerfile                     # hardened multi-stage API and placeholder targets
+compose.yaml                   # private API-to-OCR service network
+requirements.txt               # production dependencies
+requirements-dev.txt           # production dependencies plus test tooling
+tests/                         # API, dependency-failure, and placeholder tests
+```
+
+Until a compact text model and its deployment contract are selected, successful
+OCR calls return the complete output schema with field values set to `null`, field
+status `not_processed`, confidence `0`, and a
+`field_mapping_not_configured` warning. This is deliberate: the service never
+presents an unimplemented mapping stage as a confident extraction. OCR failures
+still return the documented dependency error instead of an empty success.
+
+The initial scaffold was validated with Python 3.12.3 and the exact package
+versions recorded in `requirements.txt` and `requirements-dev.txt`. Chandra itself
+is a separate deployment and is not installed by the API image.
+
+### Expected Chandra wrapper contract
+
+The complete wrapper contract is documented in
+[`docs/chandra-wrapper.md`](docs/chandra-wrapper.md). A machine-readable OpenAPI
+3.1 specification is provided in
+[`docs/chandra-wrapper.openapi.yaml`](docs/chandra-wrapper.openapi.yaml).
+
+The API sends `multipart/form-data` with one `image` part to `POST /ocr`. The
+initial wrapper response contract is:
+
+```json
+{
+  "content": "recognized text or document representation",
+  "regions": [
+    {"id": "region-1", "text": "source text"}
+  ],
+  "model_version": "datalab-to/chandra-ocr-2@pinned-revision",
+  "duration_ms": 1234,
+  "warnings": []
+}
+```
+
+Additional keys may be placed inside each region while the top-level response is
+kept strict. An invalid response produces `502`; an unavailable service produces
+`503`; and timeouts produce `504`.
 
 ## Initial scope
 
@@ -216,6 +331,7 @@ Do not assume Chandra provides calibrated field confidence. Check source excerpt
 
 | Endpoint | Behavior |
 |---|---|
+| `GET /live` | Report application-process liveness without calling dependencies |
 | `GET /health` | Report application health |
 | `POST /extract` | Accept an image and return the extraction JSON |
 | `GET /docs` | Open the interactive API documentation |
@@ -268,4 +384,3 @@ Use a configurable total deadline across OCR and field mapping. Disable automati
 - **Requests are not durable.** Restarts lose active work, and resubmission can repeat processing. Deadline expiry does not guarantee that downstream inference has stopped.
 - **Document content is untrusted input.** The mapper must treat instructions printed on a page as data and have no tools for executing them.
 - **Signature extraction is descriptive.** The system does not authenticate signatures or approve legal conclusions.
-
