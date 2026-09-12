@@ -1,0 +1,19 @@
+[project]
+name = "amazoniahack-challenge-2"
+version = "0.1.0"
+description = "System that extracts structured information from photographed enforcement documents (handwritten and typed infraction notices, licenses, notifications) so that paper-first workflows can feed digital cross-referencing without manual transcription."
+readme = "README.md"
+authors = [
+    { name = "Fernanda Linhares", email = "devfernandalinhares@gmail.com" },
+    { name = "Pedro Brito", email = "pedro.ca.brito@hotmail.com" },
+    { name = "Parag Majumdar", email = "admin@bitsofparag.com" }
+]
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+amazoniahack-challenge-2 = "amazoniahack_challenge_2:main"
+
+[build-system]
+requires = ["uv_build>=0.12.13,<0.13.0"]
+build-backend = "uv_build"
