@@ -25,10 +25,23 @@ services:
       - ALL
 
   ocr:
-    image: environmental-document-extraction-ocr-placeholder:local
+    image: environmental-document-extraction-ocr-adapter:local
     build:
       context: .
-      target: ocr-placeholder
+      target: ocr-adapter
+    environment:
+      OCR_BACKEND_BASE_URL: ${OCR_BACKEND_BASE_URL:-http://llamactl:9099/v1}
+      OCR_BACKEND_MODEL: ${OCR_BACKEND_MODEL:-chandra-ocr}
+      OCR_BACKEND_API_KEY: ${OCR_BACKEND_API_KEY:-}
+      OCR_MODEL_VERSION: ${OCR_MODEL_VERSION:-chandra-ocr-2.Q8_0+mmproj-f16}
+      OCR_BACKEND_TIMEOUT_SECONDS: ${OCR_BACKEND_TIMEOUT_SECONDS:-90}
+      OCR_MAX_OUTPUT_TOKENS: ${OCR_MAX_OUTPUT_TOKENS:-12384}
+      OCR_MAX_CONCURRENT_REQUESTS: ${OCR_MAX_CONCURRENT_REQUESTS:-1}
+      OCR_MAX_FILE_SIZE_BYTES: ${OCR_MAX_FILE_SIZE_BYTES:-15728640}
+      OCR_MAX_IMAGE_PIXELS: ${OCR_MAX_IMAGE_PIXELS:-40000000}
+    networks:
+      - default
+      - llm
     expose:
       - "9000"
     init: true
@@ -41,3 +54,7 @@ services:
     cap_drop:
       - ALL
 
+networks:
+  llm:
+    external: true
+    name: llm
