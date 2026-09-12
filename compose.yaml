@@ -1,0 +1,43 @@
+name: environmental-document-extraction
+
+services:
+  api:
+    image: environmental-document-extraction-api:local
+    build:
+      context: .
+      target: api
+    environment:
+      APP_ENVIRONMENT: production
+      APP_CHANDRA_BASE_URL: http://ocr:9000
+      APP_LOG_LEVEL: INFO
+    ports:
+      - "8000:8000"
+    depends_on:
+      - ocr
+    init: true
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  ocr:
+    image: environmental-document-extraction-ocr-placeholder:local
+    build:
+      context: .
+      target: ocr-placeholder
+    expose:
+      - "9000"
+    init: true
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
