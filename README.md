@@ -28,7 +28,9 @@ This starts the API and Chandra OCR adapter. For AWS Textract, configure an AWS 
 
 ## Current status
 
-The API, OCR adapter, Chandra backend, and Textract backend are implemented. Field mapping remains pending, so `/extract` returns null mapped fields with an explicit warning until a mapper is configured.
+The API delegates OCR to Chandra or Textract and field mapping to the configured local LLM. `/extract` persists both OCR output and the mapped result in SQLite and returns review metadata plus `_meta.document_id`. `GET /documents` lists the saved history, and `GET /documents/{id}` retrieves OCR text and the extraction without rerunning inference. Existing OCR-only records remain accessible.
+
+The [React frontend](Frontend/README.md) connects upload, document history, and result review to this API. Run `npm ci` and `npm run dev` inside `Frontend`; the development server proxies `/api` to `http://127.0.0.1:8000` by default.
 
 ## Existing technical docs
 

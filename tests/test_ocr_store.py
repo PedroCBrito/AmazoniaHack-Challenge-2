@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from stat import S_IMODE
 
@@ -33,7 +34,8 @@ async def test_sqlite_store_restores_complete_ocr_after_reopen(tmp_path: Path) -
     database = tmp_path / "ocr.sqlite3"
     store = SQLiteOCRStore(database)
     await store.initialize()
-    assert S_IMODE(database.stat().st_mode) == 0o600
+    if os.name != "nt":  # Windows chmod does not implement POSIX permission bits.
+        assert S_IMODE(database.stat().st_mode) == 0o600
     run_id = await store.save("notice.jpg", "a" * 64, _ocr())
     await store.close()
 

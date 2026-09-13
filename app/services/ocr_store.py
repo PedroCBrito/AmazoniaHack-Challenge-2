@@ -10,6 +10,8 @@ from typing import Protocol
 from pydantic import ValidationError
 
 from app.schemas.ocr import OCRRegion, OCRResult
+from app.schemas.extraction import ExtractionResult
+from app.schemas.documents import DocumentDetail, DocumentList, DocumentSummary
 
 
 SCHEMA = """
@@ -35,6 +37,10 @@ CREATE TABLE IF NOT EXISTS ocr_regions (
     bounding_box_json TEXT,
     PRIMARY KEY (run_id, ordinal)
 );
+CREATE TABLE IF NOT EXISTS document_extractions (
+    run_id INTEGER PRIMARY KEY REFERENCES ocr_runs(id) ON DELETE CASCADE,
+    result_json TEXT NOT NULL
+);
 """
 
 
@@ -48,6 +54,12 @@ class OCRStore(Protocol):
     async def save(
         self, image_basename: str, image_sha256: str, ocr: OCRResult
     ) -> int: ...
+
+    async def save_extraction(self, run_id: int, result: ExtractionResult) -> None: ...
+
+    async def list_documents(self, limit: int, offset: int) -> DocumentList: ...
+
+    async def get_document(self, run_id: int) -> DocumentDetail | None: ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -114,6 +126,91 @@ class SQLiteOCRStore:
                 ValueError,
             ) as exc:
                 raise OCRStorageError("Could not load OCR output") from exc
+
+    async def save_extraction(self, run_id: int, result: ExtractionResult) -> None:
+        async with self._lock:
+            try:
+                await asyncio.to_thread(
+                    self._save_extraction, run_id, result.model_dump_json(by_alias=True)
+                )
+            except sqlite3.Error as exc:
+                raise OCRStorageError("Could not persist extraction") from exc
+
+    def _save_extraction(self, run_id: int, result_json: str) -> None:
+        connection = self._require_connection()
+        with connection:
+            connection.execute(
+                "INSERT INTO document_extractions (run_id, result_json) VALUES (?, ?)",
+                (run_id, result_json),
+            )
+
+    async def list_documents(self, limit: int, offset: int) -> DocumentList:
+        async with self._lock:
+            try:
+                return await asyncio.to_thread(self._list_documents, limit, offset)
+            except (sqlite3.Error, ValueError, TypeError) as exc:
+                raise OCRStorageError("Could not list documents") from exc
+
+    def _list_documents(self, limit: int, offset: int) -> DocumentList:
+        connection = self._require_connection()
+        rows = connection.execute(
+            """SELECT r.id, r.image_basename, r.created_at, r.model_version,
+                      e.run_id AS extraction_id,
+                      json_extract(e.result_json, '$.document_type') AS document_type,
+                      json_extract(e.result_json, '$.number') AS number,
+                      json_extract(e.result_json, '$.municipality') AS municipality
+               FROM ocr_runs r LEFT JOIN document_extractions e ON e.run_id = r.id
+               ORDER BY r.id DESC LIMIT ? OFFSET ?""", (limit, offset)
+        ).fetchall()
+        total = connection.execute("SELECT COUNT(*) FROM ocr_runs").fetchone()[0]
+        return DocumentList(
+            items=[DocumentSummary(
+                id=row["id"], image_basename=row["image_basename"],
+                created_at=row["created_at"], ocr_model=row["model_version"],
+                status="extracted" if row["extraction_id"] is not None else "ocr_only",
+                document_type=row["document_type"], number=row["number"],
+                municipality=row["municipality"],
+            ) for row in rows],
+            total=total, limit=limit, offset=offset,
+        )
+
+    async def get_document(self, run_id: int) -> DocumentDetail | None:
+        async with self._lock:
+            try:
+                return await asyncio.to_thread(self._get_document, run_id)
+            except (sqlite3.Error, ValueError, TypeError) as exc:
+                raise OCRStorageError("Could not load document") from exc
+
+    def _get_document(self, run_id: int) -> DocumentDetail | None:
+        connection = self._require_connection()
+        row = connection.execute(
+            """SELECT r.*, e.result_json FROM ocr_runs r
+               LEFT JOIN document_extractions e ON e.run_id = r.id WHERE r.id = ?""",
+            (run_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        regions = connection.execute(
+            "SELECT * FROM ocr_regions WHERE run_id = ? ORDER BY ordinal", (run_id,)
+        ).fetchall()
+        result = (
+            ExtractionResult.model_validate_json(row["result_json"])
+            if row["result_json"] is not None else None
+        )
+        return DocumentDetail(
+            id=row["id"], image_basename=row["image_basename"],
+            created_at=row["created_at"], ocr_model=row["model_version"],
+            status="extracted" if result is not None else "ocr_only",
+            document_type=result.document_type if result else None,
+            number=result.number if result else None,
+            municipality=result.municipality if result else None,
+            extraction=result,
+            ocr=OCRResult(
+                content=row["raw_text"], model_version=row["model_version"],
+                duration_ms=row["duration_ms"], warnings=json.loads(row["warnings_json"]),
+                regions=[_restore_region(region) for region in regions],
+            ),
+        )
 
     def _open_database(self) -> sqlite3.Connection:
         if str(self._database_path) != ":memory:":
