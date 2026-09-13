@@ -3,7 +3,7 @@
 ## Current status
 
 The project has a functional FastAPI foundation and a defined HTTP boundary for a
-self-hosted Chandra OCR service. The API validates and prepares JPEG/PNG uploads,
+self-hosted Chandra OCR service. The API validates, orients, and cleans JPEG/PNG uploads with OpenCV,
 calls the OCR wrapper, validates its response shape, handles dependency failures,
 and returns the predefined review-oriented JSON schema.
 
@@ -24,6 +24,8 @@ API and OCR run as separate Docker services. The OCR adapter calls a configurabl
 |---|---|---|
 | FastAPI endpoints and output schema | **OK** | Maintain the contract as extraction evolves. |
 | JPEG/PNG validation and EXIF preparation | **OK** | Add broader fixtures for large images and EXIF cases. |
+| OpenCV image cleaning | **OK** | Implemented before OCR; synthetic quality, mode, EXIF, HTTP, limits, failure, and timeout checks. See [validation](image-cleaning.md). |
+| Cleaning impact on actual OCR accuracy | **PENDING FINALIZATION** | Compare CER/WER on representative annotated photographs with each provider; measure target-hardware resources. |
 | Docker API/OCR separation | **OK** | Validate the images with Docker Engine in CI or deployment. |
 | OCR HTTP client and error mapping | **OK** | Add direct HTTP contract tests for every dependency response. |
 | Chandra wrapper contract | **OK** | Keep the Markdown and OpenAPI documents aligned. |

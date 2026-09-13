@@ -2,6 +2,11 @@
 
 FastAPI service that turns photographed environmental documents into reviewable structured JSON. OCR backends are interchangeable: use local GPU-hosted Chandra or remote Amazon Textract.
 
+Images are validated, EXIF-oriented, and cleaned with OpenCV before OCR. Cleaning
+reduces uneven illumination and noise and produces a lossless grayscale PNG.
+See [image cleaning: design and validation](docs/image-cleaning.md) for the pipeline,
+comparison procedure, and known limits.
+
 ## Quick setup
 
 ```bash
@@ -19,6 +24,7 @@ This starts the API and Chandra OCR adapter. For AWS Textract, configure an AWS 
 - [How-to: switch OCR backends and test requests](docs/how-to.md)
 - [Reference: commands, configuration, and API](docs/reference.md)
 - [Explanation: architecture and processing flow](docs/explanation.md)
+- [Image cleaning: implementation and reproducible validation](docs/image-cleaning.md)
 
 ## Current status
 

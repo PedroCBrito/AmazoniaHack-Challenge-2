@@ -33,6 +33,11 @@ curl --fail-with-body --max-time 180 \
   http://127.0.0.1:8000/extract
 ```
 
+The API cleans the oriented image with OpenCV before invoking OCR. Cleaning is
+enabled by default and needs no additional multipart fields. To generate local
+before/after examples or disable cleaning for comparison, follow the
+[validation guide](image-cleaning.md).
+
 Stop the API and adapter with:
 
 ```bash

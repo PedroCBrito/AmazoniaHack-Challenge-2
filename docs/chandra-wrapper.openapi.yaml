@@ -43,7 +43,10 @@ paths:
                 image:
                   type: string
                   format: binary
-                  description: One image with media type image/jpeg or image/png
+                  description: >-
+                    One image with media type image/jpeg or image/png. The
+                    application sends an EXIF-oriented, OpenCV-cleaned grayscale
+                    PNG by default. Direct adapter calls do not apply cleaning.
       responses:
         "200":
           description: OCR inference completed
