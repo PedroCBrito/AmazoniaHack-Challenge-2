@@ -1,12 +1,17 @@
 import io
+from contextlib import asynccontextmanager
 
-from fastapi.testclient import TestClient
+import httpx
+import pytest
 from PIL import Image
 
 from app.core.config import Settings
 from app.core.errors import ApplicationError
 from app.main import create_app
 from app.schemas.ocr import OCRResult
+
+
+pytestmark = pytest.mark.anyio
 
 
 def _png_bytes() -> bytes:
@@ -48,11 +53,21 @@ def _test_app():
     )
 
 
-def test_health_reports_ready_dependency() -> None:
+@asynccontextmanager
+async def _request_client(app):
+    async with app.router.lifespan_context(app):
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://api.test"
+        ) as client:
+            yield client
+
+
+async def test_health_reports_ready_dependency() -> None:
     app = _test_app()
-    with TestClient(app) as client:
+    async with _request_client(app) as client:
         app.state.ocr_client = FakeOCRClient()
-        response = client.get("/health")
+        response = await client.get("/health")
 
     assert response.status_code == 200
     assert response.json() == {
@@ -62,20 +77,20 @@ def test_health_reports_ready_dependency() -> None:
     }
 
 
-def test_liveness_does_not_call_dependencies() -> None:
+async def test_liveness_does_not_call_dependencies() -> None:
     app = _test_app()
-    with TestClient(app) as client:
-        response = client.get("/live")
+    async with _request_client(app) as client:
+        response = await client.get("/live")
 
     assert response.status_code == 200
     assert response.json() == {"status": "alive", "service": "api"}
 
 
-def test_extract_returns_complete_review_contract() -> None:
+async def test_extract_returns_complete_review_contract() -> None:
     app = _test_app()
-    with TestClient(app) as client:
+    async with _request_client(app) as client:
         app.state.extraction_service._ocr_client = FakeOCRClient()
-        response = client.post(
+        response = await client.post(
             "/extract", files={"image": ("document.png", PNG_BYTES, "image/png")}
         )
 
@@ -89,10 +104,10 @@ def test_extract_returns_complete_review_contract() -> None:
     assert body["_warnings"][0]["code"] == "field_mapping_not_configured"
 
 
-def test_extract_rejects_unsupported_media_type() -> None:
+async def test_extract_rejects_unsupported_media_type() -> None:
     app = _test_app()
-    with TestClient(app) as client:
-        response = client.post(
+    async with _request_client(app) as client:
+        response = await client.post(
             "/extract", files={"image": ("document.txt", b"not an image", "text/plain")}
         )
 
@@ -100,10 +115,10 @@ def test_extract_rejects_unsupported_media_type() -> None:
     assert response.json()["error"]["code"] == "unsupported_media_type"
 
 
-def test_extract_rejects_corrupted_image() -> None:
+async def test_extract_rejects_corrupted_image() -> None:
     app = _test_app()
-    with TestClient(app) as client:
-        response = client.post(
+    async with _request_client(app) as client:
+        response = await client.post(
             "/extract",
             files={"image": ("document.png", b"not an image", "image/png")},
         )
@@ -112,10 +127,10 @@ def test_extract_rejects_corrupted_image() -> None:
     assert response.json()["error"]["code"] == "invalid_image"
 
 
-def test_extract_rejects_mismatched_media_type() -> None:
+async def test_extract_rejects_mismatched_media_type() -> None:
     app = _test_app()
-    with TestClient(app) as client:
-        response = client.post(
+    async with _request_client(app) as client:
+        response = await client.post(
             "/extract", files={"image": ("document.jpg", PNG_BYTES, "image/jpeg")}
         )
 
@@ -123,11 +138,11 @@ def test_extract_rejects_mismatched_media_type() -> None:
     assert response.json()["error"]["code"] == "media_type_mismatch"
 
 
-def test_dependency_failure_is_not_returned_as_empty_success() -> None:
+async def test_dependency_failure_is_not_returned_as_empty_success() -> None:
     app = _test_app()
-    with TestClient(app) as client:
+    async with _request_client(app) as client:
         app.state.extraction_service._ocr_client = UnavailableOCRClient()
-        response = client.post(
+        response = await client.post(
             "/extract", files={"image": ("document.png", PNG_BYTES, "image/png")}
         )
 

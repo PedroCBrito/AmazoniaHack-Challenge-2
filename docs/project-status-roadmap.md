@@ -7,13 +7,9 @@ self-hosted Chandra OCR service. The API validates and prepares JPEG/PNG uploads
 calls the OCR wrapper, validates its response shape, handles dependency failures,
 and returns the predefined review-oriented JSON schema.
 
-API and OCR run as separate Docker services. The current OCR container is only a
-placeholder: it is live but always returns `503 model_not_ready`.
+API and OCR run as separate Docker services. The OCR adapter calls a configurable local or remote OpenAI-compatible Chandra backend and converts its response to the project contract.
 
-The real OCR service can be connected without changing the API if it implements
-`GET /health` and `POST /ocr` according to `chandra-wrapper.md`. After that
-integration, `/extract` will reach the real OCR, but business fields will remain
-`null` until the field mapper is implemented.
+`/extract` now reaches real OCR through `GET /health` and `POST /ocr`. Business fields remain `null` until the field mapper is implemented.
 
 ## Status definitions
 
@@ -31,8 +27,8 @@ integration, `/extract` will reach the real OCR, but business fields will remain
 | Docker API/OCR separation | **OK** | Validate the images with Docker Engine in CI or deployment. |
 | OCR HTTP client and error mapping | **OK** | Add direct HTTP contract tests for every dependency response. |
 | Chandra wrapper contract | **OK** | Keep the Markdown and OpenAPI documents aligned. |
-| Chandra model service | **PENDING FINALIZATION** | Replace the placeholder and implement real inference on port `9000`. |
-| OCR integration testing | **PENDING FINALIZATION** | Test real content, layout regions, timeouts, invalid JSON, and model readiness. |
+| Chandra OCR adapter | **OK** | Pin the final backend and model artifact revisions. |
+| OCR integration testing | **PENDING FINALIZATION** | Add a repeatable real-model fixture and measure latency. |
 | Field extraction mapper | **NOT STARTED** | Map OCR content to the predefined environmental document fields. |
 | Semantic validation and evidence checks | **PENDING FINALIZATION** | Validate identifiers, dates, references, coordinates, areas, fines, and source excerpts. |
 | Heuristic confidence and field warnings | **PENDING FINALIZATION** | Generate conservative review priorities from real mapped fields. |
@@ -42,9 +38,8 @@ integration, `/extract` will reach the real OCR, but business fields will remain
 
 ## Recommended next steps
 
-1. Implement the Chandra wrapper and replace the `ocr-placeholder` Compose target.
-2. Add end-to-end OCR contract tests using representative Portuguese documents.
+1. Pin the llama.cpp image and Chandra GGUF artifacts.
+2. Add repeatable end-to-end OCR checks using representative Portuguese documents.
 3. Implement the field mapper and strict dependency-output handling.
 4. Complete semantic validation, evidence checks, confidence, and warnings.
 5. Add the export CLI, evaluation suite, and production deployment measurements.
-

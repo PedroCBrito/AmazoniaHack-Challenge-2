@@ -39,14 +39,13 @@ WORKDIR /srv/application
 USER 10001:10001
 
 
-# Temporary OCR target. It is intentionally a different container and returns
-# 503 until replaced by the actual Chandra wrapper image.
-FROM runtime AS ocr-placeholder
+# OCR adapter delegates inference to a local or remote OpenAI-compatible backend.
+FROM runtime AS ocr-adapter
 
-LABEL org.opencontainers.image.title="Chandra OCR Wrapper Placeholder" \
-      org.opencontainers.image.description="Unavailable placeholder for the future Chandra OCR service"
+LABEL org.opencontainers.image.title="Chandra OCR Adapter" \
+      org.opencontainers.image.description="Private adapter for OpenAI-compatible Chandra inference"
 
-COPY --chown=10001:10001 ocr_placeholder ./ocr_placeholder
+COPY --chown=10001:10001 ocr_adapter ./ocr_adapter
 
 EXPOSE 9000
 
@@ -55,7 +54,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 STOPSIGNAL SIGTERM
 
-CMD ["python", "-m", "uvicorn", "ocr_placeholder.main:app", "--host", "0.0.0.0", "--port", "9000", "--lifespan", "on", "--no-server-header", "--timeout-graceful-shutdown", "30"]
+CMD ["python", "-m", "uvicorn", "ocr_adapter.main:app", "--host", "0.0.0.0", "--port", "9000", "--lifespan", "on", "--no-server-header", "--timeout-graceful-shutdown", "30"]
 
 
 # The API is the final/default image target.
