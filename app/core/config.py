@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     max_concurrent_requests: int = Field(default=1, ge=1)
     max_file_size_bytes: int = Field(default=15 * 1024 * 1024, ge=1)
     max_image_pixels: int = Field(default=40_000_000, ge=1)
+    image_cleaning_enabled: bool = True
 
     mapper_model: str = "pending"
 

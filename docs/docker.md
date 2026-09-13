@@ -73,6 +73,12 @@ flowchart LR
 
 The adapter validates the image again because it is a separate security boundary. It converts Chandra's normalized layout boxes to pixel coordinates and returns the stable project `OCRResult`.
 
+The API performs [OpenCV image cleaning](image-cleaning.md) before its `/ocr`
+request. `opencv-python-headless` and NumPy are installed from `requirements.txt`
+in the shared dependency stage; no display server is needed. Rebuild after updating
+dependencies. Set `APP_IMAGE_CLEANING_ENABLED=false` in `.env.local` and recreate
+the API to compare with EXIF-only preparation.
+
 ## Image targets
 
 | Target | Process | Host exposure |

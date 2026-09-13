@@ -45,6 +45,10 @@ async def health(request: Request) -> HealthResponse:
         504: {"model": ApiError, "description": "Processing deadline exceeded"},
     },
     summary="Extract structured fields from one document image",
+    description=(
+        "Validates and orients a JPEG/PNG, cleans it with OpenCV when enabled, "
+        "then sends it to OCR and field mapping. Results require human review."
+    ),
 )
 async def extract(
     request: Request,

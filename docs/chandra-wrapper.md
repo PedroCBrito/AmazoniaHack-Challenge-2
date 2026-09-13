@@ -136,6 +136,13 @@ The application validates file size, decoded dimensions, byte format, declared
 media type, and image readability before sending this request. The wrapper must
 still validate its input because it is an independent security boundary.
 
+By default, the application also cleans the oriented image with OpenCV and sends
+`document.png` as `image/png`, in grayscale and at the same oriented dimensions.
+With `APP_IMAGE_CLEANING_ENABLED=false`, it sends the EXIF-normalized JPEG/PNG.
+Cleaning belongs to the application; calling this wrapper directly does not apply
+it. See [image cleaning](image-cleaning.md). The multipart and response contracts
+are unchanged.
+
 ### Successful response
 
 Status: `200 OK`

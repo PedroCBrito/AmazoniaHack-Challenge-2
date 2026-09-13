@@ -25,6 +25,24 @@
 | `AWS_CONFIG_DIR` | none | Host AWS config directory for Docker |
 | `OCR_CONTAINER_UID/GID` | `1000/1000` | OCR container identity; use `0/0` for rootless mode with mode-600 AWS files |
 
+## Image preparation configuration
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `APP_IMAGE_CLEANING_ENABLED` | `true` | Clean before OCR; `false` keeps validation and EXIF normalization only |
+| `APP_MAX_FILE_SIZE_BYTES` | `15728640` | Limit both the upload and the encoded prepared image |
+| `APP_MAX_IMAGE_PIXELS` | `40000000` | Reject excessive dimensions before decoding and cleaning |
+| `APP_MAX_CONCURRENT_REQUESTS` | `1` | Bound preparation, OCR, and mapping together |
+| `APP_PROCESSING_DEADLINE_SECONDS` | `120` | Processing deadline; native cleaning must finish before its slot is released |
+
+Cleaning returns grayscale PNG internally, including for JPEG uploads. No endpoint
+or response-field change is required. The API returns `422 image_cleaning_failed`
+for an OpenCV processing failure, and `413 prepared_image_too_large` if encoding
+exceeds the byte limit; neither case invokes OCR. Existing input-validation errors
+remain in place. Configure adapter/provider limits to accept the prepared payload.
+The cleaning toggle is passed through Docker Compose; the other API limits use
+application defaults unless explicitly supplied to the container.
+
 ## Adapter endpoints
 
 | Endpoint | Meaning |

@@ -10,6 +10,7 @@ services:
       APP_ENVIRONMENT: production
       APP_CHANDRA_BASE_URL: http://ocr:9000
       APP_LOG_LEVEL: INFO
+      APP_IMAGE_CLEANING_ENABLED: ${APP_IMAGE_CLEANING_ENABLED:-true}
     ports:
       - "8000:8000"
     depends_on:
