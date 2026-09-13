@@ -32,6 +32,17 @@ The API delegates OCR to Chandra or Textract and field mapping to the configured
 
 The [React frontend](Frontend/README.md) connects upload, document history, and result review to this API. Run `npm ci` and `npm run dev` inside `Frontend`; the development server proxies `/api` to `http://127.0.0.1:8000` by default.
 
+## Improvements
+
+The following work should guide continued development and evaluation:
+
+- [ ] **Validate extraction outputs more thoroughly.** Extend schema and semantic checks for identifiers, dates, coordinates, areas, monetary values, and cross-field consistency. Verify that source evidence supports each extracted value and that missing, unreadable, and ambiguous information receives the correct review status. Evaluate heuristic confidence against human-reviewed results.
+- [ ] **Test alternative self-hosted OCR and LLM models.** Benchmark OCR backends and field-mapping models independently on the same evaluation set. Measure character/word error rates, field accuracy, unsupported values, missing fields, latency, throughput, and CPU/GPU memory use. Record model revisions, quantization, prompts, runtime settings, and hardware so comparisons are reproducible.
+- [ ] **Review the `document_type` fields.** Validate the supported categories against real documents, including both the main document type and `references[].document_type`. Clarify overlapping categories and handling of unknown or ambiguous types, and keep the backend enum, mapping prompts, frontend labels, and tests aligned.
+- [ ] **Persist human review corrections.** Add API and storage support for edited values, confirmations, and review history; frontend edits currently remain local to the session. Preserve the original model output alongside reviewed values and use verified corrections to expand regression coverage.
+- [ ] **Measure the impact of image cleaning.** Compare OCR and field extraction with and without cleaning on real photographs, especially faint text, stamps, handwriting, and uneven lighting, before changing preprocessing defaults.
+
+
 ## Existing technical docs
 
 - [Docker operations](docs/docker.md)
