@@ -1,4 +1,4 @@
-# Environmental Document Extraction
+# EDEX - Environmental Document Extraction
 
 FastAPI service that turns photographed environmental documents into reviewable structured JSON. OCR backends are interchangeable: use local GPU-hosted Chandra or remote Amazon Textract.
 
