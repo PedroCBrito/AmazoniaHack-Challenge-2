@@ -9,17 +9,27 @@ services:
     environment:
       APP_ENVIRONMENT: production
       APP_CHANDRA_BASE_URL: http://ocr:9000
+      APP_MAPPER_BASE_URL: ${APP_MAPPER_BASE_URL:-http://llamactl:9099/v1}
+      APP_MAPPER_MODEL: ${APP_MAPPER_MODEL:-gemma4-31b}
+      APP_MAPPER_TIMEOUT_SECONDS: ${APP_MAPPER_TIMEOUT_SECONDS:-60}
+      APP_MAPPER_MAX_OUTPUT_TOKENS: ${APP_MAPPER_MAX_OUTPUT_TOKENS:-4096}
+      APP_DATABASE_PATH: /data/ocr.sqlite3
       APP_LOG_LEVEL: INFO
-      APP_IMAGE_CLEANING_ENABLED: ${APP_IMAGE_CLEANING_ENABLED:-true}
+      APP_IMAGE_CLEANING_ENABLED: ${APP_IMAGE_CLEANING_ENABLED:-false}
     ports:
       - "8000:8000"
     depends_on:
       - ocr
+    networks:
+      - default
+      - llm
     init: true
     restart: unless-stopped
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
+    volumes:
+      - ocr-data:/data
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -67,3 +77,6 @@ networks:
   llm:
     external: true
     name: llm
+
+volumes:
+  ocr-data:

@@ -1,9 +1,11 @@
 import asyncio
+import hashlib
 import io
 import threading
 from contextlib import asynccontextmanager
 from email import policy
 from email.parser import BytesParser
+from pathlib import Path
 
 import cv2
 import httpx
@@ -13,9 +15,12 @@ from PIL import Image
 from app.core.config import Settings
 from app.core.errors import ApplicationError
 from app.main import create_app
+from app.schemas.extraction import ExtractionResult
 from app.schemas.ocr import OCRResult
 from app.services.image_cleaner import clean_image
+from app.services.field_mapper import LlamaCppFieldMapper, PendingFieldMapper
 from app.services.ocr_client import ChandraClient
+from app.services.ocr_store import OCRStorageError, SQLiteOCRStore
 
 
 pytestmark = pytest.mark.anyio
@@ -49,14 +54,18 @@ class UnavailableOCRClient(FakeOCRClient):
         raise ApplicationError(503, "ocr_unavailable", "The OCR service is unavailable.")
 
 
-def _test_app():
+def _test_app(**overrides):
+    values = {
+        "environment": "test",
+        "chandra_base_url": "http://ocr.test",
+        "max_file_size_bytes": 1024,
+        "max_image_pixels": 100,
+        "database_path": ":memory:",
+        **overrides,
+    }
     return create_app(
-        Settings(
-            environment="test",
-            chandra_base_url="http://ocr.test",
-            max_file_size_bytes=1024,
-            max_image_pixels=100,
-        )
+        Settings(**values),
+        field_mapper=PendingFieldMapper("test-mapper"),
     )
 
 
@@ -93,6 +102,29 @@ async def test_liveness_does_not_call_dependencies() -> None:
     assert response.json() == {"status": "alive", "service": "api"}
 
 
+async def test_startup_wires_local_llama_mapper_by_default() -> None:
+    settings = Settings(
+        _env_file=None,
+        mapper_base_url="http://mapper.test/v1",
+        mapper_model="test-model",
+        database_path=":memory:",
+    )
+    app = create_app(settings)
+
+    async with app.router.lifespan_context(app):
+        mapper = app.state.extraction_service._field_mapper
+
+    assert isinstance(mapper, LlamaCppFieldMapper)
+
+
+def test_image_cleaning_is_opt_in_by_default() -> None:
+    assert Settings(_env_file=None).image_cleaning_enabled is False
+
+
+def test_database_defaults_to_ignored_local_data_directory() -> None:
+    assert Settings(_env_file=None).database_path.as_posix() == "data/ocr.sqlite3"
+
+
 async def test_extract_returns_complete_review_contract() -> None:
     app = _test_app()
     async with _request_client(app) as client:
@@ -109,6 +141,53 @@ async def test_extract_returns_complete_review_contract() -> None:
     assert body["_review"]["number"]["status"] == "not_processed"
     assert body["confidence"]["number"] == 0.0
     assert body["_warnings"][0]["code"] == "field_mapping_not_configured"
+
+
+async def test_extract_persists_raw_ocr_after_request(tmp_path: Path) -> None:
+    database = tmp_path / "ocr.sqlite3"
+    app = _test_app(database_path=database)
+    async with _request_client(app) as client:
+        app.state.extraction_service._ocr_client = FakeOCRClient()
+        response = await client.post(
+            "/extract", files={"image": ("issued.png", PNG_BYTES, "image/png")}
+        )
+
+    store = SQLiteOCRStore(database)
+    await store.initialize()
+    stored = await store.load_latest(hashlib.sha256(PNG_BYTES).hexdigest())
+    await store.close()
+
+    assert response.status_code == 200
+    assert stored is not None
+    assert stored.image_basename == "issued.png"
+    assert stored.ocr.content == "AUTO DE INFRAÇÃO Nº 000123/2026"
+
+
+async def test_storage_failure_stops_mapping_and_returns_safe_error() -> None:
+    class FailingStore:
+        async def save(
+            self, _image_basename: str, _image_sha256: str, _ocr: OCRResult
+        ) -> int:
+            raise OCRStorageError("private database details")
+
+    class UnexpectedMapper:
+        async def map(self, _ocr: OCRResult) -> ExtractionResult:
+            pytest.fail("Mapping must not run after storage failure")
+
+    app = create_app(
+        Settings(_env_file=None, environment="test"),
+        field_mapper=UnexpectedMapper(),
+        ocr_store=FailingStore(),
+    )
+    async with _request_client(app) as client:
+        app.state.extraction_service._ocr_client = FakeOCRClient()
+        response = await client.post(
+            "/extract", files={"image": ("issued.png", PNG_BYTES, "image/png")}
+        )
+
+    assert response.status_code == 500
+    assert response.json()["error"]["code"] == "ocr_storage_failed"
+    assert "private database details" not in response.text
 
 
 async def test_extract_rejects_unsupported_media_type() -> None:
@@ -182,7 +261,14 @@ async def test_extract_sends_prepared_image_over_ocr_http_contract(enabled) -> N
             "duration_ms": 1, "warnings": [],
         })
 
-    app = create_app(Settings(_env_file=None, image_cleaning_enabled=enabled))
+    app = create_app(
+        Settings(
+            _env_file=None,
+            image_cleaning_enabled=enabled,
+            database_path=":memory:",
+        ),
+        field_mapper=PendingFieldMapper("test-mapper"),
+    )
     async with httpx.AsyncClient(
         base_url="http://ocr.test", transport=httpx.MockTransport(handle_ocr)
     ) as upstream, _request_client(app) as client:
@@ -203,7 +289,7 @@ async def test_cleaning_failure_returns_error_without_calling_ocr(monkeypatch) -
             pytest.fail("OCR must not run after cleaning failure")
 
     monkeypatch.setattr("app.services.image_processor.clean_image", failing_cleaner)
-    app = _test_app()
+    app = _test_app(image_cleaning_enabled=True)
     async with _request_client(app) as client:
         app.state.extraction_service._ocr_client = UnexpectedOCRClient()
         response = await client.post(
@@ -232,7 +318,15 @@ async def test_cleaning_keeps_event_loop_responsive_and_holds_capacity_after_tim
             return await super().recognize(image)
 
     monkeypatch.setattr("app.services.image_processor.clean_image", blocked_cleaner)
-    app = create_app(Settings(_env_file=None, processing_deadline_seconds=0.1))
+    app = create_app(
+        Settings(
+            _env_file=None,
+            image_cleaning_enabled=True,
+            processing_deadline_seconds=0.1,
+            database_path=":memory:",
+        ),
+        field_mapper=PendingFieldMapper("test-mapper"),
+    )
     ocr = RecordingOCRClient()
     async with _request_client(app) as client:
         app.state.extraction_service._ocr_client = ocr

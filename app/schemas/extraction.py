@@ -37,7 +37,7 @@ class FieldStatus(StrEnum):
 
 
 class StrictModel(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
 
 class Party(StrictModel):
@@ -48,8 +48,9 @@ class Party(StrictModel):
 
 
 class DocumentReference(StrictModel):
-    document_type: DocumentType | str | None
+    document_type: DocumentType | None
     number: str | None
+    series: str | None
     year: str | None
 
 
@@ -77,16 +78,22 @@ class Confidence(StrictModel):
     references: float = Field(ge=0, le=1)
     officer_registration: float = Field(ge=0, le=1)
     signatures: float = Field(ge=0, le=1)
+    fields: float = Field(ge=0, le=1)
 
     @classmethod
     def zeroed(cls) -> "Confidence":
         return cls(**{name: 0.0 for name in cls.model_fields})
 
 
+class Evidence(StrictModel):
+    source_excerpt: str = Field(min_length=1)
+    region_reference: str | None = None
+    bounding_box: list[int] | None = Field(default=None, min_length=4, max_length=4)
+
+
 class FieldReview(StrictModel):
     status: FieldStatus
-    source_excerpt: str | None = None
-    region_reference: str | None = None
+    evidence: list[Evidence] = Field(default_factory=list)
     explanation: str | None = None
 
 
@@ -117,17 +124,18 @@ class ExtractionResult(StrictModel):
     parties: list[Party] | None
     property_name: str | None
     car: str | None
-    coordinates: str | None
+    coordinates: list[str] | None
     area_ha: float | None = Field(ge=0, allow_inf_nan=False)
     legal_basis: list[str] | None
     fine_brl: float | None = Field(ge=0, allow_inf_nan=False)
     references: list[DocumentReference] | None
     officer_registration: str | None
     signatures: SignatureDescriptions | None
+    fields: dict[str, str | None] | None
     confidence: Confidence
-    meta: ExtractionMeta = Field(serialization_alias="_meta")
-    review: dict[str, FieldReview] = Field(serialization_alias="_review")
-    warnings: list[ExtractionWarning] = Field(serialization_alias="_warnings")
+    meta: ExtractionMeta = Field(alias="_meta")
+    review: dict[str, FieldReview] = Field(alias="_review")
+    warnings: list[ExtractionWarning] = Field(alias="_warnings")
 
     @field_validator("issued_date")
     @classmethod
@@ -152,12 +160,29 @@ class ExtractionResult(StrictModel):
         return value
 
     @model_validator(mode="after")
-    def require_review_for_every_common_field(self) -> Self:
-        missing = set(Confidence.model_fields).difference(self.review)
+    def validate_review_metadata(self) -> Self:
+        common_fields = set(Confidence.model_fields)
+        missing = common_fields.difference(self.review)
         if missing:
             missing_names = ", ".join(sorted(missing))
             raise ValueError(f"review metadata is missing fields: {missing_names}")
+        unknown = set(self.review).difference(common_fields)
+        if unknown:
+            unknown_names = ", ".join(sorted(unknown))
+            raise ValueError(f"review metadata has unknown fields: {unknown_names}")
+        for field in common_fields:
+            self._validate_field_review(field, self.review[field])
         return self
+
+    def _validate_field_review(self, field: str, review: FieldReview) -> None:
+        value = getattr(self, field)
+        if value is None and review.status == FieldStatus.EXTRACTED:
+            raise ValueError(f"{field} is null but marked extracted")
+        if value is not None and not review.evidence:
+            raise ValueError(f"{field} requires source evidence")
+        allowed = {FieldStatus.EXTRACTED, FieldStatus.AMBIGUOUS}
+        if value is not None and review.status not in allowed:
+            raise ValueError(f"{field} has a value but status is {review.status}")
 
 
 COMMON_FIELDS = tuple(Confidence.model_fields)
