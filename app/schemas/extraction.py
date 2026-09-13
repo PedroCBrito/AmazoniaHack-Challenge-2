@@ -104,6 +104,7 @@ class ExtractionWarning(StrictModel):
 
 
 class ExtractionMeta(StrictModel):
+    document_id: int | None = Field(default=None, ge=1)
     ocr_model: str
     mapper_model: str
     duration_ms: int = Field(ge=0)

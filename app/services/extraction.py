@@ -40,9 +40,17 @@ class ExtractionService:
             async with asyncio.timeout(self._settings.processing_deadline_seconds):
                 image = await prepare_image(upload, self._settings)
                 ocr = await self._ocr_client.recognize(image)
-                await self._persist_ocr(image.source_basename, image.source_sha256, ocr)
+                run_id = await self._persist_ocr(image.source_basename, image.source_sha256, ocr)
                 result = await self._field_mapper.map(ocr)
                 result.meta.duration_ms = int((time.perf_counter() - started) * 1000)
+                result.meta.document_id = run_id
+                try:
+                    await self._ocr_store.save_extraction(run_id, result)
+                except OCRStorageError as exc:
+                    raise ApplicationError(
+                        500, "extraction_storage_failed",
+                        "The extracted fields could not be stored. OCR output was preserved.",
+                    ) from exc
                 return result
         except TimeoutError as exc:
             raise ApplicationError(
@@ -55,9 +63,9 @@ class ExtractionService:
 
     async def _persist_ocr(
         self, image_basename: str, image_sha256: str, ocr: OCRResult
-    ) -> None:
+    ) -> int:
         try:
-            await self._ocr_store.save(image_basename, image_sha256, ocr)
+            return await self._ocr_store.save(image_basename, image_sha256, ocr)
         except OCRStorageError as exc:
             raise ApplicationError(
                 500,

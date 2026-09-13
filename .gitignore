@@ -37,3 +37,7 @@ models/
 *.json
 !public/**/*.json
 !tests/fixtures/**/*.json
+!Frontend/package.json
+!Frontend/package-lock.json
+!Frontend/tsconfig*.json
+!Frontend/.oxlintrc.json
