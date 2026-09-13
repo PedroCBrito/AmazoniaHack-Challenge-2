@@ -6,60 +6,81 @@ The project uses **Chandra as a self-hosted OCR service** to read document image
 
 Every result is a draft for human review. Missing or uncertain information is reported explicitly.
 
-> Status: containerized FastAPI service scaffold. Image validation and the Chandra
-> HTTP client are implemented; OCR and compact text field mapping are intentionally
-> pending.
+> Status: the FastAPI API and Chandra OCR adapter are implemented. The adapter calls a configurable local or remote OpenAI-compatible backend. Compact text field mapping remains pending.
 
 ## Running with Docker
 
-The recommended deployment keeps the API and OCR in separate containers on a
-private Compose network. The temporary OCR container is live but always returns
-`503 model_not_ready`; it never produces simulated OCR content.
+The recommended deployment keeps the API and OCR adapter in separate containers. Start the configured Chandra backend before Compose. The local backend must join the external Docker network `llm` with alias `llamactl`; the adapter then uses `http://llamactl:9099/v1`.
 
 ```bash
-docker compose build --pull
-docker compose up --detach
+cp .env.example .env.local
+docker compose --env-file .env.local build --pull
+docker compose --env-file .env.local up --detach
 ```
 
-Open <http://127.0.0.1:8000/docs> for the API documentation. The API liveness probe
-is available at <http://127.0.0.1:8000/live>. Application health remains
-`degraded` until a real OCR image replaces the placeholder.
+Open <http://127.0.0.1:8000/docs> for the API documentation. The API liveness probe is available at <http://127.0.0.1:8000/live>. `/health` reports `ok` when the adapter can find the configured model.
 
 See [`docs/docker.md`](docs/docker.md) for image targets, security decisions,
 operations, standalone builds, and instructions for replacing the OCR service.
 
+## Using Amazon Textract
+
+Set `OCR_PROVIDER=textract` in `.env.local` to use Amazon Textract instead of Chandra. The adapter sends uploaded JPEG or PNG bytes directly to Textract and uses the AWS SDK credential chain.
+
+Configure an AWS profile and region in `.env.local`:
+
+```env
+OCR_PROVIDER=textract
+AWS_PROFILE=amazonia2026-textract
+AWS_REGION=eu-central-1
+AWS_CONFIG_DIR=/absolute/path/to/your/.aws
+OCR_CONTAINER_UID=0
+OCR_CONTAINER_GID=0
+```
+
+`AWS_CONFIG_DIR` must point to the host directory containing `config` and `credentials`. Compose mounts this directory read-only at `/tmp/aws`. For rootless Docker, set `OCR_CONTAINER_UID=0` and `OCR_CONTAINER_GID=0`; container root maps to the unprivileged host user and can read AWS files with mode `600`.
+
+Verify the profile before starting the stack:
+
+```bash
+aws sts get-caller-identity --profile amazonia2026-textract
+just start
+```
+
+Switch back to Chandra by setting `OCR_PROVIDER=chandra`. The remaining Chandra settings are documented in [`.env.example`](.env.example).
+
 ## Running the API locally
 
-Python 3.11 or newer is recommended. Create an isolated environment, install the
-development dependencies, copy the example configuration, and start Uvicorn:
+Python 3.13 is used for local development. Create an isolated environment, install the development dependencies, and create one complete local configuration:
 
 ```bash
 python -m venv .venv
 
 # Linux/macOS
 source .venv/bin/activate
-cp .env.example .env
+cp .env.example .env.local
 
 # Windows PowerShell
 .venv\Scripts\Activate.ps1
-Copy-Item .env.example .env
+Copy-Item .env.example .env.local
 
 python -m pip install -r requirements-dev.txt
-uvicorn app.main:app --reload
 ```
 
-The API documentation is then available at <http://127.0.0.1:8000/docs>.
-Run the contract tests with:
+Start the OCR adapter and API in separate terminals:
 
 ```bash
-pytest
+just dev-ocr
+just dev-api
 ```
 
-Configuration is read from `.env` or from environment variables prefixed with
-`APP_`. The most important setting is `APP_CHANDRA_BASE_URL`, which must point to
-the private project wrapper described below. File size, decoded pixel count,
-concurrency, dependency timeout, and total processing deadline are configurable;
-see [`.env.example`](.env.example) for all initial values.
+The API documentation is then available at <http://127.0.0.1:8000/docs>. Run the contract tests with:
+
+```bash
+just test
+```
+
+The `just` development commands load `.env.local` explicitly. `APP_*` settings configure the application. `OCR_*` settings configure the adapter and its local or remote backend. See [`.env.example`](.env.example) for all values.
 
 ### Current project structure
 
@@ -74,16 +95,16 @@ app/
 ├── services/field_mapper.py   # mapper boundary and safe pending implementation
 ├── services/extraction.py     # deadline and concurrency orchestration
 └── main.py                    # FastAPI application factory
-ocr_placeholder/main.py       # explicit 503 service until Chandra is implemented
+ocr_adapter/                  # /ocr adapter and OpenAI-compatible backend client
 docs/
 ├── chandra-wrapper.md         # human-readable wrapper contract
 ├── chandra-wrapper.openapi.yaml # machine-readable OpenAPI 3.1 contract
 └── docker.md                  # container build and operation guide
-Dockerfile                     # hardened multi-stage API and placeholder targets
+Dockerfile                     # hardened multi-stage API and adapter targets
 compose.yaml                   # private API-to-OCR service network
 requirements.txt               # production dependencies
 requirements-dev.txt           # production dependencies plus test tooling
-tests/                         # API, dependency-failure, and placeholder tests
+tests/                         # API, adapter, validation, and dependency tests
 ```
 
 Until a compact text model and its deployment contract are selected, successful
@@ -93,9 +114,7 @@ status `not_processed`, confidence `0`, and a
 presents an unimplemented mapping stage as a confident extraction. OCR failures
 still return the documented dependency error instead of an empty success.
 
-The initial scaffold was validated with Python 3.12.3 and the exact package
-versions recorded in `requirements.txt` and `requirements-dev.txt`. Chandra itself
-is a separate deployment and is not installed by the API image.
+The current test suite is validated with Python 3.13.14 and the package versions recorded in `requirements.txt` and `requirements-dev.txt`. Chandra remains a separate deployment and is not installed by either Python image.
 
 ### Expected Chandra wrapper contract
 
@@ -254,14 +273,14 @@ Recognizing handwriting, checkboxes, or a signature mark does not guarantee corr
 
 [Chandra](https://github.com/datalab-to/chandra) supports document OCR with layout information and local Hugging Face or vLLM inference. The selected starting checkpoint is [datalab-to/chandra-ocr-2](https://huggingface.co/datalab-to/chandra-ocr-2); pin its revision and runtime versions after testing.
 
-Deploy a small private HTTP wrapper around the Chandra inference pipeline:
+The `ocr_adapter` package implements a private HTTP wrapper around an OpenAI-compatible Chandra backend:
 
 | Internal endpoint | Purpose |
 |---|---|
 | `GET /health` | Report whether the OCR service is ready |
 | `POST /ocr` | Accept one image and return OCR content and available layout |
 
-These are **project-defined wrapper endpoints**, not endpoints provided by Chandra itself. The wrapper may load the model directly or call a self-hosted vLLM instance.
+These are **project-defined wrapper endpoints**, not endpoints provided by Chandra itself. Configure `OCR_BACKEND_BASE_URL` and `OCR_BACKEND_MODEL` for llama.cpp, vLLM, or another compatible private endpoint. Set `OCR_BACKEND_API_KEY` when the remote endpoint requires a bearer token.
 
 Its response should expose recognized content, available region references, model version, processing duration, and warnings. Preserve source content before mapping it to business fields.
 
@@ -360,7 +379,7 @@ Use a configurable total deadline across OCR and field mapping. Disable automati
 ## Acceptance criteria
 
 - [ ] A user can upload one JPEG or PNG and receive valid JSON.
-- [ ] OCR runs through the project's self-hosted Chandra service.
+- [x] OCR runs through the project's configurable Chandra adapter.
 - [ ] Field mapping uses OCR content and preserves source references.
 - [ ] Every common output field exists with the expected type or an explicit gap.
 - [ ] Leading zeros, document references, and coordinate strings are preserved.

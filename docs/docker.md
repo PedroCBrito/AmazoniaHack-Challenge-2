@@ -1,151 +1,117 @@
-# Docker Deployment
+# Docker deployment
 
-The recommended local deployment uses two containers connected by a private
-Compose network:
+This guide is for developers and operators running the API with a local or remote Chandra backend. Success means both Compose services are healthy and `POST /ocr` returns Chandra content.
 
-- `api`: the public FastAPI application on host port `8000`;
-- `ocr`: an internal placeholder on container port `9000`.
-
-The placeholder is intentionally unavailable for OCR. Its `/live` endpoint returns
-`200`, while `/health` and `/ocr` return `503 model_not_ready`. It preserves the
-network boundary without returning fake recognition data. Replace this service
-with the real Chandra wrapper when it is implemented.
-
-```mermaid
-flowchart LR
-    Client[Client] -->|localhost:8000| API[api container]
-    API -->|http://ocr:9000| OCR[ocr container]
-    OCR -. future .-> Chandra[Chandra runtime]
-```
-
-Only the API port is published to the host. The OCR service is reachable by its
-Compose DNS name only from containers on the project network.
-
-## Build and run
+## Run with the local llama.cpp backend
 
 Requirements:
 
 - Docker Engine with the Compose plugin;
-- enough disk and memory for the API images;
-- later, compatible GPU/container runtime resources for the selected Chandra
-  deployment.
+- Chandra available through an OpenAI-compatible API;
+- the Chandra container connected to external Docker network `llm` with alias `llamactl`;
+- model name `chandra-ocr`, or a matching `OCR_BACKEND_MODEL` value.
 
-From the repository root:
+The current local default is `http://llamactl:9099/v1`. The OCR adapter joins the same external `llm` network as the Chandra container.
+
+Create one complete local configuration:
 
 ```bash
-docker compose build --pull
-docker compose up --detach
-docker compose ps
+cp .env.example .env.local
 ```
 
-Check the API:
+Build and start both services:
+
+```bash
+docker compose --env-file .env.local build --pull
+docker compose --env-file .env.local up --detach
+docker compose --env-file .env.local ps
+```
+
+Expected services:
+
+- `api` serves port `8000` on the host;
+- `ocr` serves port `9000` only inside the Compose network.
+
+Check the public API:
 
 ```bash
 curl http://127.0.0.1:8000/live
 curl http://127.0.0.1:8000/health
 ```
 
-`/live` should report the API process as alive. `/health` reports `degraded` until
-the placeholder is replaced by a ready OCR implementation. Swagger UI remains at
-<http://127.0.0.1:8000/docs>.
+`/live` reports `alive`. `/health` reports `ok` when the adapter can find the configured model.
 
-Inspect logs and stop the deployment with:
+Stop the deployment:
 
 ```bash
-docker compose logs --follow
-docker compose down
+docker compose --env-file .env.local down
 ```
+
+## Use a remote Chandra backend
+
+Change these values in `.env.local`:
+
+```dotenv
+OCR_BACKEND_BASE_URL=https://<OCR_HOST>/v1
+OCR_BACKEND_MODEL=chandra-ocr
+OCR_BACKEND_API_KEY=<SECRET>
+OCR_MODEL_VERSION=<PINNED_MODEL_VERSION>
+```
+
+The adapter sends `OCR_BACKEND_API_KEY` as a bearer token. Keep `.env.local` untracked. Use HTTPS outside a trusted local network.
+
+Restart Compose and check `/health` after changing the backend.
+
+## Service flow
+
+```mermaid
+flowchart LR
+    Client[Client] -->|localhost:8000| API[API]
+    API -->|POST /ocr| Adapter[OCR adapter]
+    Adapter -->|POST /v1/chat/completions| Backend[Local or remote Chandra]
+```
+
+The adapter validates the image again because it is a separate security boundary. It converts Chandra's normalized layout boxes to pixel coordinates and returns the stable project `OCRResult`.
 
 ## Image targets
 
-The multi-stage `Dockerfile` has two final targets:
-
-| Target | Default process | Published externally |
+| Target | Process | Host exposure |
 |---|---|---|
-| `api` | `app.main:app` on port `8000` | yes, through Compose |
-| `ocr-placeholder` | `ocr_placeholder.main:app` on port `9000` | no |
+| `api` | `app.main:app` on port `8000` | published by Compose |
+| `ocr-adapter` | `ocr_adapter.main:app` on port `9000` | private Compose network |
 
-Building without `--target` produces the API image because `api` is the final
-stage:
+Build either target directly:
 
 ```bash
 docker build --target api -t environmental-document-extraction-api:local .
-docker run --rm --init -p 8000:8000 \
-  -e APP_CHANDRA_BASE_URL=http://host.docker.internal:9000 \
-  environmental-document-extraction-api:local
+docker build --target ocr-adapter -t environmental-document-extraction-ocr-adapter:local .
 ```
 
-Use Compose for the normal workflow. The standalone command requires a reachable
-OCR wrapper at the configured address.
+## Runtime properties
 
-## Security and runtime properties
+Both Python images:
 
-Both images:
+- run as unprivileged user `10001`;
+- use a read-only root filesystem in Compose;
+- drop all Linux capabilities;
+- disable privilege escalation;
+- store temporary multipart data in a size-limited `/tmp` filesystem;
+- exclude image bytes, OCR text, model paths, and credentials from application logs.
 
-- derive from the official Python slim image;
-- install pinned runtime dependencies in a separate build stage;
-- run as the unprivileged numeric user and group `10001`;
-- use exec-form commands and a 30-second graceful shutdown deadline;
-- disable the framework's identifying `Server` response header;
-- use a process-only `/live` Docker healthcheck;
-- write temporary multipart data only to a size-limited `/tmp` tmpfs in Compose;
-- run with a read-only root filesystem, all Linux capabilities dropped, and
-  `no-new-privileges` enabled;
-- keep application access logs on stdout/stderr for the container log driver.
+The OCR adapter does not load model weights. GPU lifecycle and memory belong to the configured Chandra backend.
 
-The base image uses a floating Python patch tag (`python:3.12-slim-bookworm`) so
-`docker compose build --pull` receives upstream security fixes. For reproducible
-release builds, resolve that tag to an approved digest in CI and pass it as the
-global `PYTHON_IMAGE` build argument.
+## Configuration reference
 
-Do not copy `.env`, uploaded images, OCR output, models, Git history, test caches,
-or local virtual environments into a build context. `.dockerignore` excludes these
-items. Runtime secrets should be injected by the deployment platform and not baked
-into an image or committed to the repository.
+| Variable | Default | Purpose |
+|---|---|---|
+| `OCR_BACKEND_BASE_URL` | `http://llamactl:9099/v1` in Compose | OpenAI-compatible API base URL |
+| `OCR_BACKEND_MODEL` | `chandra-ocr` | Model sent in inference requests |
+| `OCR_BACKEND_API_KEY` | empty | Optional remote bearer token |
+| `OCR_MODEL_VERSION` | `chandra-ocr-2.Q8_0+mmproj-f16` | Version returned in OCR metadata |
+| `OCR_BACKEND_TIMEOUT_SECONDS` | `90` | Backend request timeout |
+| `OCR_MAX_OUTPUT_TOKENS` | `12384` | Chandra output limit |
+| `OCR_MAX_CONCURRENT_REQUESTS` | `1` | Adapter inference slots |
+| `OCR_MAX_FILE_SIZE_BYTES` | `15728640` | Upload byte limit |
+| `OCR_MAX_IMAGE_PIXELS` | `40000000` | Decoded pixel limit |
 
-## Why the services are separate
-
-API traffic and OCR inference have different scaling, memory, startup, GPU, and
-failure characteristics. Keeping them in separate containers allows the OCR model
-to restart or move to GPU hardware without restarting the API. It also avoids a
-process supervisor inside the API image and prevents multiple API workers from
-accidentally loading duplicate model copies.
-
-The application still sees a simple HTTP dependency at `http://ocr:9000`.
-
-## Replacing the OCR placeholder
-
-Implement the contract in [`chandra-wrapper.md`](chandra-wrapper.md), then change
-only the `ocr` service in `compose.yaml`. For example:
-
-```yaml
-services:
-  ocr:
-    image: registry.example.com/chandra-wrapper:<immutable-version>
-    expose:
-      - "9000"
-    # Add the GPU reservation required by the chosen runtime here.
-```
-
-Keep the Compose service name `ocr`, internal port `9000`, and endpoint contract.
-The API setting can then remain:
-
-```text
-APP_CHANDRA_BASE_URL=http://ocr:9000
-```
-
-Do not add a readiness dependency that blocks the API container from starting for
-the full model-load duration. The API is useful for liveness and diagnostics while
-OCR warms up, and `/health` already reports dependency readiness.
-
-## Dependency policy
-
-`requirements.txt` contains production dependencies only. `requirements-dev.txt`
-adds test tools for local development and CI. Versions are pinned so a dependency
-update is deliberate and can be validated before rebuilding an image.
-
-The Uvicorn standard extras are intentionally not installed: this API currently
-does not need reload watchers, WebSockets, YAML logging configuration, or alternate
-HTTP/event-loop implementations in production. The OCR operation is the expected
-bottleneck, so the smaller dependency surface is preferable at this stage.
-
+Pin the llama.cpp image digest and model artifact hashes before production use. The default model version describes the current local files but is not an immutable content hash.
