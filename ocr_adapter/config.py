@@ -1,6 +1,8 @@
 from functools import lru_cache
 
-from pydantic import Field, HttpUrl, SecretStr
+from typing import Literal
+
+from pydantic import AliasChoices, Field, HttpUrl, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -8,6 +10,8 @@ class OCRSettings(BaseSettings):
     """OCR adapter settings loaded from OCR_* environment variables."""
 
     model_config = SettingsConfigDict(env_prefix="OCR_", extra="ignore")
+
+    provider: Literal["chandra", "textract"] = "chandra"
 
     backend_base_url: HttpUrl = HttpUrl("http://127.0.0.1:9099/v1")
     backend_model: str = Field(default="chandra-ocr", min_length=1)
@@ -20,6 +24,13 @@ class OCRSettings(BaseSettings):
     max_concurrent_requests: int = Field(default=1, ge=1)
     max_file_size_bytes: int = Field(default=15 * 1024 * 1024, ge=1)
     max_image_pixels: int = Field(default=40_000_000, ge=1)
+    aws_region: str = Field(
+        default="eu-central-1",
+        validation_alias=AliasChoices("AWS_REGION", "AWS_DEFAULT_REGION", "OCR_AWS_REGION"),
+    )
+    aws_profile: str | None = Field(
+        default=None, validation_alias=AliasChoices("AWS_PROFILE", "OCR_AWS_PROFILE")
+    )
 
     @property
     def normalized_backend_url(self) -> str:

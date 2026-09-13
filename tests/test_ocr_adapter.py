@@ -5,7 +5,7 @@ import httpx
 import pytest
 from PIL import Image
 
-from ocr_adapter.backend import OpenAIChandraBackend
+from ocr_adapter.backend import OpenAIChandraBackend, TextractBackend
 from ocr_adapter.config import OCRSettings
 from ocr_adapter.main import create_app
 
@@ -41,12 +41,16 @@ def _completion(content: str) -> httpx.Response:
     )
 
 
-async def _adapter_client(handler, settings: OCRSettings | None = None):
+async def _adapter_client(
+    handler, settings: OCRSettings | None = None, backend=None
+):
     backend_http = httpx.AsyncClient(
         transport=httpx.MockTransport(handler),
         base_url="http://chandra.test/v1/",
     )
-    backend = OpenAIChandraBackend(backend_http, _settings() if settings is None else settings)
+    backend = backend or OpenAIChandraBackend(
+        backend_http, _settings() if settings is None else settings
+    )
     app = create_app(settings or _settings(), backend=backend)
     transport = httpx.ASGITransport(app=app)
     return httpx.AsyncClient(transport=transport, base_url="http://adapter.test")
@@ -254,3 +258,44 @@ async def test_ocr_rejects_malformed_backend_response() -> None:
 
     assert response.status_code == 500
     assert response.json()["error"]["code"] == "ocr_failed"
+
+
+async def test_textract_backend_maps_lines_to_adapter_regions() -> None:
+    class FakeTextract:
+        def detect_document_text(self, **kwargs):
+            assert kwargs["Document"]["Bytes"] == _png_bytes()
+            return {
+                "Blocks": [
+                    {
+                        "BlockType": "LINE",
+                        "Text": "Linha um",
+                        "Geometry": {
+                            "BoundingBox": {
+                                "Left": 0.1,
+                                "Top": 0.2,
+                                "Width": 0.5,
+                                "Height": 0.1,
+                            }
+                        },
+                    }
+                ]
+            }
+
+    async def run(call, **kwargs):
+        return call(**kwargs)
+
+    settings = _settings(provider="textract")
+    backend = TextractBackend(settings, client=FakeTextract(), run=run)
+    async with await _adapter_client(
+        lambda _: _completion("unused"), settings, backend
+    ) as client:
+        response = await client.post(
+            "/ocr",
+            files={"image": ("document.png", _png_bytes(), "image/png")},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["content"] == (
+        '<div data-bbox="100 200 600 300" data-label="Text">Linha um</div>'
+    )
+    assert response.json()["regions"][0]["bounding_box"] == [20, 20, 120, 30]

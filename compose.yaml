@@ -26,10 +26,12 @@ services:
 
   ocr:
     image: environmental-document-extraction-ocr-adapter:local
+    user: "${OCR_CONTAINER_UID:-1000}:${OCR_CONTAINER_GID:-1000}"
     build:
       context: .
       target: ocr-adapter
     environment:
+      OCR_PROVIDER: ${OCR_PROVIDER:-chandra}
       OCR_BACKEND_BASE_URL: ${OCR_BACKEND_BASE_URL:-http://llamactl:9099/v1}
       OCR_BACKEND_MODEL: ${OCR_BACKEND_MODEL:-chandra-ocr}
       OCR_BACKEND_API_KEY: ${OCR_BACKEND_API_KEY:-}
@@ -39,6 +41,10 @@ services:
       OCR_MAX_CONCURRENT_REQUESTS: ${OCR_MAX_CONCURRENT_REQUESTS:-1}
       OCR_MAX_FILE_SIZE_BYTES: ${OCR_MAX_FILE_SIZE_BYTES:-15728640}
       OCR_MAX_IMAGE_PIXELS: ${OCR_MAX_IMAGE_PIXELS:-40000000}
+      AWS_REGION: ${AWS_REGION:-eu-central-1}
+      AWS_PROFILE: ${AWS_PROFILE:-}
+      AWS_CONFIG_FILE: /tmp/aws/config
+      AWS_SHARED_CREDENTIALS_FILE: /tmp/aws/credentials
     networks:
       - default
       - llm
@@ -49,6 +55,8 @@ services:
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
+    volumes:
+      - ${AWS_CONFIG_DIR:?Set AWS_CONFIG_DIR in .env.local to your host AWS config directory}:/tmp/aws:ro
     security_opt:
       - no-new-privileges:true
     cap_drop:

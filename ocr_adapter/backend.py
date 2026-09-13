@@ -1,6 +1,12 @@
 import base64
+import asyncio
+from collections.abc import Awaitable, Callable
+from html import escape
+import io
+from typing import Protocol
 
 import httpx
+from PIL import Image
 
 from ocr_adapter.config import OCRSettings
 from ocr_adapter.prompts import OCR_LAYOUT_PROMPT
@@ -12,6 +18,14 @@ class BackendUnavailableError(Exception):
 
 class BackendResponseError(Exception):
     """The inference service returned an unusable response."""
+
+
+class OCRBackend(Protocol):
+    """Common interface implemented by every OCR provider."""
+
+    async def health(self) -> bool: ...
+
+    async def recognize(self, image: bytes, content_type: str) -> str: ...
 
 
 class OpenAIChandraBackend:
@@ -85,6 +99,74 @@ class OpenAIChandraBackend:
         if not isinstance(content, str):
             raise BackendResponseError
         return _clean_content(content)
+
+
+class TextractBackend:
+    """Amazon Textract client using synchronous image-byte requests."""
+
+    def __init__(
+        self,
+        settings: OCRSettings,
+        client: object | None = None,
+        run: Callable[..., Awaitable[dict]] | None = None,
+    ) -> None:
+        if client is None:
+            try:
+                import boto3
+            except ImportError as exc:
+                raise BackendUnavailableError from exc
+            session = boto3.Session(
+                profile_name=settings.aws_profile or None, region_name=settings.aws_region
+            )
+            client = session.client("textract")
+        self._client = client
+        self._run = run or asyncio.to_thread
+
+    async def health(self) -> bool:
+        """Report configured readiness without requiring extra IAM permissions."""
+        return self._client is not None
+
+    async def recognize(self, image: bytes, content_type: str) -> str:
+        try:
+            response = await self._run(
+                self._client.detect_document_text,
+                Document={"Bytes": image},
+            )
+        except Exception as exc:
+            error_name = exc.__class__.__name__
+            if error_name.endswith(("Error", "Exception")):
+                raise BackendUnavailableError from exc
+            raise BackendResponseError from exc
+        try:
+            with Image.open(io.BytesIO(image)) as decoded:
+                return _parse_textract_content(response, decoded.width, decoded.height)
+        except (OSError, ValueError) as exc:
+            raise BackendResponseError from exc
+
+
+def _parse_textract_content(response: object, width: int, height: int) -> str:
+    if not isinstance(response, dict):
+        raise BackendResponseError
+    blocks = response.get("Blocks")
+    if not isinstance(blocks, list):
+        raise BackendResponseError
+    rendered = [
+        _render_textract_line(block, width, height)
+        for block in blocks
+        if isinstance(block, dict) and block.get("BlockType") == "LINE"
+    ]
+    return "\n".join(line for line in rendered if line)
+
+
+def _render_textract_line(block: dict, width: int, height: int) -> str:
+    text = str(block.get("Text", "")).strip()
+    geometry = block.get("Geometry", {})
+    box = geometry.get("BoundingBox", {}) if isinstance(geometry, dict) else {}
+    left = int(round(float(box.get("Left", 0)) * 1000))
+    top = int(round(float(box.get("Top", 0)) * 1000))
+    right = int(round((float(box.get("Left", 0)) + float(box.get("Width", 0))) * 1000))
+    bottom = int(round((float(box.get("Top", 0)) + float(box.get("Height", 0))) * 1000))
+    return f'<div data-bbox="{left} {top} {right} {bottom}" data-label="Text">{escape(text)}</div>'
 
 
 def _clean_content(content: str) -> str:

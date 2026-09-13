@@ -14,7 +14,9 @@ from PIL import Image, UnidentifiedImageError
 from ocr_adapter.backend import (
     BackendResponseError,
     BackendUnavailableError,
+    OCRBackend,
     OpenAIChandraBackend,
+    TextractBackend,
 )
 from ocr_adapter.config import OCRSettings, get_settings
 from ocr_adapter.errors import AdapterError, register_error_handlers
@@ -44,7 +46,7 @@ class OCRService:
     """Own input validation, capacity, inference, and response shaping."""
 
     def __init__(
-        self, settings: OCRSettings, backend: OpenAIChandraBackend
+        self, settings: OCRSettings, backend: OCRBackend
     ) -> None:
         self._settings = settings
         self._backend = backend
@@ -115,7 +117,7 @@ def _decode_image(content: bytes) -> tuple[int, int, str]:
 
 def create_app(
     settings: OCRSettings | None = None,
-    backend: OpenAIChandraBackend | None = None,
+    backend: OCRBackend | None = None,
 ) -> FastAPI:
     """Create the OCR adapter with an injectable inference backend."""
     settings = settings or get_settings()
@@ -129,15 +131,13 @@ def create_app(
         async with httpx.AsyncClient(
             base_url=settings.normalized_backend_url, timeout=timeout
         ) as backend_http:
-            application.state.ocr_service = OCRService(
-                settings, OpenAIChandraBackend(backend_http, settings)
-            )
+            application.state.ocr_service = OCRService(settings, _build_backend(settings, backend_http))
             yield
 
     application = FastAPI(
-        title="Chandra OCR Adapter",
+        title="OCR Adapter",
         version="0.1.0",
-        description="Private adapter for an OpenAI-compatible Chandra backend.",
+        description="Private adapter for interchangeable OCR backends.",
         lifespan=lifespan,
     )
     if backend is not None:
@@ -145,6 +145,12 @@ def create_app(
     register_error_handlers(application)
     _register_routes(application, settings)
     return application
+
+
+def _build_backend(settings: OCRSettings, backend_http: httpx.AsyncClient) -> OCRBackend:
+    if settings.provider == "textract":
+        return TextractBackend(settings)
+    return OpenAIChandraBackend(backend_http, settings)
 
 
 def _register_routes(application: FastAPI, settings: OCRSettings) -> None:
