@@ -6,6 +6,8 @@ services:
     build:
       context: .
       target: api
+    # Rootless Docker maps container root to the local user for this bind mount.
+    user: "${APP_CONTAINER_UID:-0}:${APP_CONTAINER_GID:-0}"
     environment:
       APP_ENVIRONMENT: production
       APP_CHANDRA_BASE_URL: http://ocr:9000
@@ -29,7 +31,7 @@ services:
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
     volumes:
-      - ocr-data:/data
+      - ./data:/data
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -77,6 +79,3 @@ networks:
   llm:
     external: true
     name: llm
-
-volumes:
-  ocr-data:
