@@ -15,6 +15,7 @@ from app.core.errors import ApplicationError
 from app.main import create_app
 from app.schemas.ocr import OCRResult
 from app.services.image_cleaner import clean_image
+from app.services.field_mapper import LlamaCppFieldMapper, PendingFieldMapper
 from app.services.ocr_client import ChandraClient
 
 
@@ -49,14 +50,17 @@ class UnavailableOCRClient(FakeOCRClient):
         raise ApplicationError(503, "ocr_unavailable", "The OCR service is unavailable.")
 
 
-def _test_app():
+def _test_app(**overrides):
+    values = {
+        "environment": "test",
+        "chandra_base_url": "http://ocr.test",
+        "max_file_size_bytes": 1024,
+        "max_image_pixels": 100,
+        **overrides,
+    }
     return create_app(
-        Settings(
-            environment="test",
-            chandra_base_url="http://ocr.test",
-            max_file_size_bytes=1024,
-            max_image_pixels=100,
-        )
+        Settings(**values),
+        field_mapper=PendingFieldMapper("test-mapper"),
     )
 
 
@@ -91,6 +95,24 @@ async def test_liveness_does_not_call_dependencies() -> None:
 
     assert response.status_code == 200
     assert response.json() == {"status": "alive", "service": "api"}
+
+
+async def test_startup_wires_local_llama_mapper_by_default() -> None:
+    settings = Settings(
+        _env_file=None,
+        mapper_base_url="http://mapper.test/v1",
+        mapper_model="test-model",
+    )
+    app = create_app(settings)
+
+    async with app.router.lifespan_context(app):
+        mapper = app.state.extraction_service._field_mapper
+
+    assert isinstance(mapper, LlamaCppFieldMapper)
+
+
+def test_image_cleaning_is_opt_in_by_default() -> None:
+    assert Settings(_env_file=None).image_cleaning_enabled is False
 
 
 async def test_extract_returns_complete_review_contract() -> None:
@@ -182,7 +204,10 @@ async def test_extract_sends_prepared_image_over_ocr_http_contract(enabled) -> N
             "duration_ms": 1, "warnings": [],
         })
 
-    app = create_app(Settings(_env_file=None, image_cleaning_enabled=enabled))
+    app = create_app(
+        Settings(_env_file=None, image_cleaning_enabled=enabled),
+        field_mapper=PendingFieldMapper("test-mapper"),
+    )
     async with httpx.AsyncClient(
         base_url="http://ocr.test", transport=httpx.MockTransport(handle_ocr)
     ) as upstream, _request_client(app) as client:
@@ -203,7 +228,7 @@ async def test_cleaning_failure_returns_error_without_calling_ocr(monkeypatch) -
             pytest.fail("OCR must not run after cleaning failure")
 
     monkeypatch.setattr("app.services.image_processor.clean_image", failing_cleaner)
-    app = _test_app()
+    app = _test_app(image_cleaning_enabled=True)
     async with _request_client(app) as client:
         app.state.extraction_service._ocr_client = UnexpectedOCRClient()
         response = await client.post(
@@ -232,7 +257,14 @@ async def test_cleaning_keeps_event_loop_responsive_and_holds_capacity_after_tim
             return await super().recognize(image)
 
     monkeypatch.setattr("app.services.image_processor.clean_image", blocked_cleaner)
-    app = create_app(Settings(_env_file=None, processing_deadline_seconds=0.1))
+    app = create_app(
+        Settings(
+            _env_file=None,
+            image_cleaning_enabled=True,
+            processing_deadline_seconds=0.1,
+        ),
+        field_mapper=PendingFieldMapper("test-mapper"),
+    )
     ocr = RecordingOCRClient()
     async with _request_client(app) as client:
         app.state.extraction_service._ocr_client = ocr

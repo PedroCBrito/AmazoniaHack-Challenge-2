@@ -32,7 +32,9 @@ def upload_image(image: Image.Image, image_format: str = "PNG", **save_options) 
 @pytest.mark.parametrize("image_format", ["JPEG", "PNG"])
 async def test_cleaned_payload_is_lossless_png_with_consistent_metadata(image_format) -> None:
     upload = upload_image(Image.new("RGB", (60, 40), (200, 180, 150)), image_format)
-    prepared = await prepare_image(upload, Settings(_env_file=None))
+    prepared = await prepare_image(
+        upload, Settings(_env_file=None, image_cleaning_enabled=True)
+    )
     assert upload.file.closed
     assert prepared.filename == "document.png"
     assert prepared.content_type == "image/png"
@@ -115,7 +117,10 @@ async def test_opencv_failure_is_mapped_to_application_error(monkeypatch) -> Non
 
     monkeypatch.setattr("app.services.image_processor.clean_image", failing_cleaner)
     with pytest.raises(ApplicationError) as error:
-        await prepare_image(upload_image(Image.new("RGB", (40, 40))), Settings(_env_file=None))
+        await prepare_image(
+            upload_image(Image.new("RGB", (40, 40))),
+            Settings(_env_file=None, image_cleaning_enabled=True),
+        )
     assert error.value.code == "image_cleaning_failed"
     assert error.value.status_code == 422
     assert "internal" not in error.value.message
@@ -127,7 +132,11 @@ async def test_encoded_output_limit_is_checked_even_when_upload_fits(monkeypatch
     with pytest.raises(ApplicationError) as error:
         await prepare_image(
             upload_image(Image.new("RGB", (100, 100), "white")),
-            Settings(_env_file=None, max_file_size_bytes=1024),
+            Settings(
+                _env_file=None,
+                image_cleaning_enabled=True,
+                max_file_size_bytes=1024,
+            ),
         )
     assert error.value.code == "prepared_image_too_large"
     assert error.value.status_code == 413
@@ -137,7 +146,8 @@ async def test_16_bit_png_is_scaled_without_clipping_ink_to_white() -> None:
     pixels = np.full((40, 40), 65535, dtype=np.uint16)
     pixels[5:35, 10:12] = 10000
     prepared = await prepare_image(
-        upload_image(Image.fromarray(pixels)), Settings(_env_file=None)
+        upload_image(Image.fromarray(pixels)),
+        Settings(_env_file=None, image_cleaning_enabled=True),
     )
     with Image.open(io.BytesIO(prepared.content)) as decoded:
         assert decoded.mode == "L"
@@ -149,7 +159,8 @@ async def test_palette_png_transparency_survives_upload_decoding() -> None:
     image = Image.new("RGBA", (40, 40), (0, 0, 0, 0))
     ImageDraw.Draw(image).line((10, 5, 10, 35), fill=(0, 0, 0, 255), width=2)
     prepared = await prepare_image(
-        upload_image(image.convert("P")), Settings(_env_file=None)
+        upload_image(image.convert("P")),
+        Settings(_env_file=None, image_cleaning_enabled=True),
     )
     with Image.open(io.BytesIO(prepared.content)) as decoded:
         assert decoded.getpixel((0, 0)) >= 254
@@ -170,7 +181,8 @@ def test_repeated_cancellation_waits_for_native_processing(monkeypatch) -> None:
 
     async def exercise_cancellation():
         task = asyncio.create_task(prepare_image(
-            upload_image(Image.new("RGB", (40, 40))), Settings(_env_file=None)
+            upload_image(Image.new("RGB", (40, 40))),
+            Settings(_env_file=None, image_cleaning_enabled=True),
         ))
         try:
             assert await asyncio.to_thread(started.wait, 2)

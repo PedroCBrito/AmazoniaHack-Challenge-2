@@ -26,12 +26,14 @@ class Settings(BaseSettings):
     max_concurrent_requests: int = Field(default=1, ge=1)
     max_file_size_bytes: int = Field(default=15 * 1024 * 1024, ge=1)
     max_image_pixels: int = Field(default=40_000_000, ge=1)
-    image_cleaning_enabled: bool = True
+    image_cleaning_enabled: bool = False
 
-    mapper_model: str = "pending"
+    mapper_base_url: HttpUrl = HttpUrl("http://127.0.0.1:9099/v1")
+    mapper_model: str = "gemma4-31b"
+    mapper_timeout_seconds: float = Field(default=60, gt=0)
+    mapper_max_output_tokens: int = Field(default=4096, ge=1)
 
 
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
-
