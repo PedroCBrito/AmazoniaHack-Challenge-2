@@ -26,9 +26,9 @@ The implementation follows these steps:
 7. Document the new flow and leave actual OCR accuracy evaluation as a separate,
    explicit measurement with annotated documents.
 
-Review also confirmed that the mapper is still `PendingFieldMapper`: `/extract`
-returns null business fields and `field_mapping_not_configured`. Cleaning does
-not implement field extraction or change this contract. Runtime installation uses
+At the time of the cleaning implementation, mapping was a placeholder. It has
+since been replaced by the [local rule mapper](field-mapping.md). Cleaning itself
+does not implement field extraction. Runtime installation uses
 `requirements*.txt`; the existing `pyproject.toml`/`uv.lock` are scaffold metadata
 with no application dependency list and are not the installation path used here.
 The existing Docker image and local validation environment use Python 3.12, while
@@ -169,8 +169,8 @@ machine and cover cleaning only, excluding HTTP, encoding, and inference.
    gains before tuning. Use the disabled setting if a document category regresses.
 
 Actual OCR comparisons and Docker runtime validation require the corresponding
-services and are separate from these offline checks. Field-level accuracy cannot
-be inferred from the current `/extract` response while field mapping is pending.
+services and are separate from these offline checks. Field-level accuracy must be
+measured against annotated documents, separately from the mapper's heuristic scores.
 
 ## Limits
 

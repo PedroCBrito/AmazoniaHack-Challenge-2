@@ -1,0 +1,22 @@
+AUTO DE INFRAÇÃO Nº 00831/2026
+Série: A
+Data de emissão: 13/09/2026
+Hora: 09:35
+01 - Município: São Félix do Xingu
+Órgão emissor: Secretaria Municipal de Meio Ambiente
+Autuado: Pessoa Exemplo
+CPF/CNPJ: 000.000.000-00
+Endereço: Rua Exemplo, 10
+Fiscal: Agente Exemplo
+Matrícula do fiscal: 00125
+Nome da propriedade: Sítio Exemplo
+CAR: PA-0000000-EXEMPLO
+Área (ha): 1.234,56 ha
+Coordenadas:
+Vértice 1: 2°58'36,2"S 54°12'01,0"W
+Vértice 2: 2°58'37,3"S 54°12'02,0"W
+Fundamentação legal: Art. 70 da Lei 9.605/1998; Art. 50 do Decreto 6.514/2008
+Valor da multa: R$ 12.345,67
+Referências: Auto de constatação nº 00318/2026; Termo de embargo nº 00042/2026
+Assinatura do autuante: assinado
+Assinatura do autuado: recusou-se a assinar

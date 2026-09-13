@@ -69,3 +69,16 @@ Run the tests with:
 ```bash
 just test
 ```
+
+## Export the hackathon JSON
+
+With the API and the selected OCR backend running:
+
+```bash
+python -m scripts.export_json documents/document.jpg --output-dir outputs
+```
+
+This creates `outputs/document.json` after validating the response. Supply
+multiple image paths to process them sequentially. Use a new output directory
+for each comparison run: the command never overwrites existing JSON files.
+See [field mapping](field-mapping.md) for supported labels and review semantics.

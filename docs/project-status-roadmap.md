@@ -9,7 +9,9 @@ and returns the predefined review-oriented JSON schema.
 
 API and OCR run as separate Docker services. The OCR adapter calls a configurable local or remote OpenAI-compatible Chandra backend and converts its response to the project contract.
 
-`/extract` now reaches real OCR through `GET /health` and `POST /ocr`. Business fields remain `null` until the field mapper is implemented.
+`/extract` reaches the OCR adapter through `POST /ocr` and maps supported explicit
+Portuguese titles/labels with local rules. Unsupported or ambiguous values remain
+null with review evidence. See [field mapping](field-mapping.md).
 
 ## Status definitions
 
@@ -31,10 +33,10 @@ API and OCR run as separate Docker services. The OCR adapter calls a configurabl
 | Chandra wrapper contract | **OK** | Keep the Markdown and OpenAPI documents aligned. |
 | Chandra OCR adapter | **OK** | Pin the final backend and model artifact revisions. |
 | OCR integration testing | **PENDING FINALIZATION** | Add a repeatable real-model fixture and measure latency. |
-| Field extraction mapper | **NOT STARTED** | Map OCR content to the predefined environmental document fields. |
-| Semantic validation and evidence checks | **PENDING FINALIZATION** | Validate identifiers, dates, references, coordinates, areas, fines, and source excerpts. |
-| Heuristic confidence and field warnings | **PENDING FINALIZATION** | Generate conservative review priorities from real mapped fields. |
-| JSON export CLI | **NOT STARTED** | Save one JSON file per image using the same basename. |
+| Field extraction mapper | **OK** | Local rules cover supported explicit labels; broaden coverage with annotated real forms. |
+| Semantic validation and evidence checks | **PENDING FINALIZATION** | Format/conflict checks and source attribution implemented. Evaluate OCR errors, complex layouts, and cross-field semantics on real documents. |
+| Heuristic confidence and field warnings | **PENDING FINALIZATION** | Evidence-based review scores and warnings implemented; calibration on real documents remains. |
+| JSON export CLI | **OK** | Validates responses and writes one JSON per basename without overwriting existing files. |
 | Evaluation and resource reporting | **NOT STARTED** | Measure field errors, missing values, latency, CPU/GPU use, and memory. |
 | Production model and hardware guide | **NOT STARTED** | Record tested versions, checkpoint revision, hardware, and runtime configuration. |
 
@@ -42,6 +44,6 @@ API and OCR run as separate Docker services. The OCR adapter calls a configurabl
 
 1. Pin the llama.cpp image and Chandra GGUF artifacts.
 2. Add repeatable end-to-end OCR checks using representative Portuguese documents.
-3. Implement the field mapper and strict dependency-output handling.
-4. Complete semantic validation, evidence checks, confidence, and warnings.
-5. Add the export CLI, evaluation suite, and production deployment measurements.
+3. Evaluate the local mapper on representative annotated forms and extend explicit label rules.
+4. Measure field errors and calibrate confidence; improve complex layout and partial-field handling.
+5. Add production deployment measurements and real-image regression fixtures.

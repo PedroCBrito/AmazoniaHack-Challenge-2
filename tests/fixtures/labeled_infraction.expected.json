@@ -1,0 +1,27 @@
+{
+  "document_type": "infraction_notice",
+  "number": "00831",
+  "series": "A",
+  "year": "2026",
+  "issued_date": "13/09/2026",
+  "issued_time": "09:35",
+  "municipality": "São Félix do Xingu",
+  "agency": "Secretaria Municipal de Meio Ambiente",
+  "parties": [
+    {"role": "cited_party", "name": "Pessoa Exemplo", "document_id": "000.000.000-00", "address": "Rua Exemplo, 10"},
+    {"role": "issuer", "name": "Agente Exemplo", "document_id": null, "address": null}
+  ],
+  "property_name": "Sítio Exemplo",
+  "car": "PA-0000000-EXEMPLO",
+  "coordinates": ["2°58'36,2\"S 54°12'01,0\"W", "2°58'37,3\"S 54°12'02,0\"W"],
+  "area_ha": 1234.56,
+  "legal_basis": ["Art. 70 da Lei 9.605/1998", "Art. 50 do Decreto 6.514/2008"],
+  "fine_brl": 12345.67,
+  "references": [
+    {"document_type": "finding_notice", "number": "00318", "year": "2026"},
+    {"document_type": "embargo_notice", "number": "00042", "year": "2026"}
+  ],
+  "officer_registration": "00125",
+  "signatures": {"issuer": "assinado", "cited_party": "recusou-se a assinar"},
+  "fields": {"01": "Município: São Félix do Xingu"}
+}

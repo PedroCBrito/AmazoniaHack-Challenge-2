@@ -3,7 +3,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class DocumentType(StrEnum):
@@ -34,6 +34,7 @@ class FieldStatus(StrEnum):
     UNREADABLE = "unreadable"
     AMBIGUOUS = "ambiguous"
     NOT_PROCESSED = "not_processed"
+    UNKNOWN = "unknown"
 
 
 class StrictModel(BaseModel):
@@ -77,10 +78,16 @@ class Confidence(StrictModel):
     references: float = Field(ge=0, le=1)
     officer_registration: float = Field(ge=0, le=1)
     signatures: float = Field(ge=0, le=1)
+    fields: float = Field(default=0, ge=0, le=1)
 
     @classmethod
     def zeroed(cls) -> "Confidence":
         return cls(**{name: 0.0 for name in cls.model_fields})
+
+
+class SourceEvidence(StrictModel):
+    source_excerpt: str
+    region_reference: str | None = None
 
 
 class FieldReview(StrictModel):
@@ -88,6 +95,7 @@ class FieldReview(StrictModel):
     source_excerpt: str | None = None
     region_reference: str | None = None
     explanation: str | None = None
+    evidence: list[SourceEvidence] = Field(default_factory=list)
 
 
 class ExtractionWarning(StrictModel):
@@ -105,7 +113,7 @@ class ExtractionMeta(StrictModel):
     confidence_kind: Literal["heuristic"] = "heuristic"
 
 
-class ExtractionResult(StrictModel):
+class ExtractionFields(StrictModel):
     document_type: DocumentType | None
     number: str | None
     series: str | None
@@ -117,17 +125,14 @@ class ExtractionResult(StrictModel):
     parties: list[Party] | None
     property_name: str | None
     car: str | None
-    coordinates: str | None
+    coordinates: list[str] | None
     area_ha: float | None = Field(ge=0, allow_inf_nan=False)
     legal_basis: list[str] | None
     fine_brl: float | None = Field(ge=0, allow_inf_nan=False)
     references: list[DocumentReference] | None
     officer_registration: str | None
     signatures: SignatureDescriptions | None
-    confidence: Confidence
-    meta: ExtractionMeta = Field(serialization_alias="_meta")
-    review: dict[str, FieldReview] = Field(serialization_alias="_review")
-    warnings: list[ExtractionWarning] = Field(serialization_alias="_warnings")
+    fields: dict[str, str] | None = None
 
     @field_validator("issued_date")
     @classmethod
@@ -151,12 +156,33 @@ class ExtractionResult(StrictModel):
             raise ValueError("issued_time must use HH:MM")
         return value
 
+
+class ExtractionResult(ExtractionFields):
+    confidence: Confidence
+    meta: ExtractionMeta = Field(validation_alias=AliasChoices("meta", "_meta"), serialization_alias="_meta")
+    review: dict[str, FieldReview] = Field(validation_alias=AliasChoices("review", "_review"), serialization_alias="_review")
+    warnings: list[ExtractionWarning] = Field(validation_alias=AliasChoices("warnings", "_warnings"), serialization_alias="_warnings")
+
     @model_validator(mode="after")
     def require_review_for_every_common_field(self) -> Self:
         missing = set(Confidence.model_fields).difference(self.review)
         if missing:
             missing_names = ", ".join(sorted(missing))
             raise ValueError(f"review metadata is missing fields: {missing_names}")
+        if set(self.review).difference(Confidence.model_fields):
+            raise ValueError("review metadata contains unknown fields")
+        for name, review in self.review.items():
+            value = getattr(self, name)
+            if value is None:
+                if getattr(self.confidence, name) != 0:
+                    raise ValueError(f"{name}: null values require zero confidence")
+                if review.status == FieldStatus.EXTRACTED:
+                    raise ValueError(f"{name}: extracted values cannot be null")
+            else:
+                if review.status != FieldStatus.EXTRACTED:
+                    raise ValueError(f"{name}: values require extracted status")
+                if not review.source_excerpt and not review.evidence:
+                    raise ValueError(f"{name}: extracted values require source evidence")
         return self
 
 

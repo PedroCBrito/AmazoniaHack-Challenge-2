@@ -25,10 +25,21 @@ This starts the API and Chandra OCR adapter. For AWS Textract, configure an AWS 
 - [Reference: commands, configuration, and API](docs/reference.md)
 - [Explanation: architecture and processing flow](docs/explanation.md)
 - [Image cleaning: implementation and reproducible validation](docs/image-cleaning.md)
+- [Field mapping: rules, evidence, schema, and JSON export](docs/field-mapping.md)
 
 ## Current status
 
-The API, OCR adapter, Chandra backend, and Textract backend are implemented. Field mapping remains pending, so `/extract` returns null mapped fields with an explicit warning until a mapper is configured.
+The API uses a local Portuguese rule mapper after Chandra or Textract OCR. `/extract`
+returns supported labeled fields, source evidence, and heuristic confidence.
+Unknown or conflicting values remain null. No extra model or API key is needed
+for mapping. Real-document accuracy still requires evaluation; see the
+[supported formats and limits](docs/field-mapping.md).
+
+Export a validated JSON with the image's basename:
+
+```bash
+python -m scripts.export_json path/to/document.jpg --output-dir outputs
+```
 
 ## Existing technical docs
 

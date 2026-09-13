@@ -8,11 +8,11 @@ from app.api.routes import router
 from app.core.config import Settings, get_settings
 from app.core.errors import register_error_handlers
 from app.services.extraction import ExtractionService
-from app.services.field_mapper import PendingFieldMapper
+from app.services.field_mapper import FieldMapper, RuleBasedFieldMapper
 from app.services.ocr_client import ChandraClient
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(settings: Settings | None = None, field_mapper: FieldMapper | None = None) -> FastAPI:
     settings = settings or get_settings()
 
     @asynccontextmanager
@@ -27,7 +27,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             app.state.extraction_service = ExtractionService(
                 settings=settings,
                 ocr_client=ocr_client,
-                field_mapper=PendingFieldMapper(settings.mapper_model),
+                field_mapper=field_mapper if field_mapper is not None else RuleBasedFieldMapper(),
             )
             yield
 

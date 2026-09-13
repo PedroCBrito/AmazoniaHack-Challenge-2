@@ -62,7 +62,26 @@ application defaults unless explicitly supplied to the container.
 | `POST /extract` | OCR plus field-mapping response |
 | `GET /docs` | Interactive OpenAPI documentation |
 
-The current mapper is pending. `/extract` therefore returns null mapped fields, zero confidence, and `field_mapping_not_configured`.
+The default mapper is `portuguese-form-rules-v2`, runs locally, and requires no
+additional configuration. The old `APP_MAPPER_MODEL` label has been retired;
+`_meta.mapper_model` records the actual rule version.
+
+`coordinates` is a list of verbatim strings or null. Optional `fields` preserves
+numbered form entries. Every common field, including `fields`, has `confidence`
+and `_review` entries. `_review` includes status, source excerpt, optional region
+ID, and an `evidence` list for fields supported by multiple source lines.
+`unknown` means the rules/OCR cannot establish a value, not that the image proves
+absence. Null values have zero confidence. See [rules and limits](field-mapping.md).
+
+## JSON export
+
+`python -m scripts.export_json IMAGE [IMAGE ...] --output-dir outputs`
+
+The CLI calls `/extract`, validates the response, and saves `IMAGE_STEM.json` in
+UTF-8. Options: `--api-url` (default `http://127.0.0.1:8000`), `--timeout` (default
+180 seconds). Existing outputs and duplicate basenames are rejected before
+requests. A failed request stops the batch with exit code 1; earlier successful
+files remain. The API itself does not store documents or results.
 
 ## AWS permissions
 

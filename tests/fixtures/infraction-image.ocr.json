@@ -1,0 +1,884 @@
+{
+  "content": "<div data-bbox=\"374 43 619 54\" data-label=\"Text\">Prefeitura Municipal de Altamira</div>\n<div data-bbox=\"840 43 931 50\" data-label=\"Text\">PREFEITURA DE</div>\n<div data-bbox=\"67 45 243 68\" data-label=\"Text\">SEMMA</div>\n<div data-bbox=\"310 57 684 68\" data-label=\"Text\">Secretaria Municipal da Gestão do Meio Ambiente</div>\n<div data-bbox=\"817 52 954 67\" data-label=\"Text\">ALTAMIRA</div>\n<div data-bbox=\"67 69 242 73\" data-label=\"Text\">SECRETARIA MUNICIPAL DA GESTÃO 00 MEIO AMBIENTE</div>\n<div data-bbox=\"829 67 942 72\" data-label=\"Text\">RENOVAÇÃO, UNITO E TRABALHO</div>\n<div data-bbox=\"381 70 614 81\" data-label=\"Text\">Setor de Fiscalização Ambiental</div>\n<div data-bbox=\"152 98 868 113\" data-label=\"Text\">AUTO DE INFRAÇÃO COM A PENALIDADE DE MULTA N° 00092 ANO/ 2026</div>\n<div data-bbox=\"430 125 583 134\" data-label=\"Text\">DADOS DO AUTUADO</div>\n<div data-bbox=\"70 140 215 148\" data-label=\"Text\">1 NOME DO AUTUADO</div>\n<div data-bbox=\"95 152 569 165\" data-label=\"Text\">JURANDIR NONATO BARBOSA DE SOUSA</div>\n<div data-bbox=\"68 170 160 180\" data-label=\"Text\">2 ENDEREÇO</div>\n<div data-bbox=\"754 170 827 179\" data-label=\"Text\">3 NÚMERO</div>\n<div data-bbox=\"109 179 331 195\" data-label=\"Text\">TRAVESSA AGRÁRIA</div>\n<div data-bbox=\"851 178 905 191\" data-label=\"Text\">1427</div>\n<div data-bbox=\"67 200 136 208\" data-label=\"Text\">4 BAIRRO</div>\n<div data-bbox=\"514 202 556 210\" data-label=\"Text\">5 . CEP</div>\n<div data-bbox=\"730 200 812 209\" data-label=\"Text\">6 MUNICÍPIO</div>\n<div data-bbox=\"116 209 209 225\" data-label=\"Text\">BRASÍLIA</div>\n<div data-bbox=\"562 211 670 224\" data-label=\"Text\">68.372-140</div>\n<div data-bbox=\"755 211 899 225\" data-label=\"Text\">ALTAMIRA PA</div>\n<div data-bbox=\"66 232 149 240\" data-label=\"Text\">7 CNPJ/CPF</div>\n<div data-bbox=\"515 232 676 242\" data-label=\"Text\">8 INSCRIÇÃO ESTADUAL</div>\n<div data-bbox=\"152 243 335 257\" data-label=\"Text\">638.204.112-90</div>\n<div data-bbox=\"554 243 667 258\" data-label=\"Text\">NÃO POSSUI</div>\n<div data-bbox=\"65 264 153 273\" data-label=\"Text\">9 ATIVIDADE</div>\n<div data-bbox=\"169 269 316 286\" data-label=\"Text\">AGROPECUÁRIA</div>\n<div data-bbox=\"65 308 139 317\" data-label=\"Text\">10 LOCAL</div>\n<div data-bbox=\"471 308 534 316\" data-label=\"Text\">11 DATA</div>\n<div data-bbox=\"754 306 819 315\" data-label=\"Text\">12 HORA</div>\n<div data-bbox=\"73 320 441 335\" data-label=\"Text\">TRAVESSÃO DA 27, KM 14, GLEBA ASSURINI,</div>\n<div data-bbox=\"76 336 314 347\" data-label=\"Text\">ZONA RURAL DE ALTAMIRA</div>\n<div data-bbox=\"509 325 619 343\" data-label=\"Text\">17/03/2026</div>\n<div data-bbox=\"823 320 883 334\" data-label=\"Text\">14:10</div>\n<div data-bbox=\"64 367 323 379\" data-label=\"Text\">13 DESCRIÇÃO DA IRREGULARIDADE</div>\n<div data-bbox=\"98 380 895 399\" data-label=\"Text\">SUPRIMIR 23,4187 HA DE VEGETAÇÃO NATIVA SEM AUTORIZAÇÃO DO ÓRGÃO</div>\n<div data-bbox=\"69 400 902 418\" data-label=\"Text\">AMBIENTAL COMPETENTE, NO IMÓVEL RURAL DENOMINADO FAZENDA NOVA ALIANÇA,</div>\n<div data-bbox=\"67 416 928 435\" data-label=\"Text\">SENDO 2,489 HA EM ÁREA DE PRESERVAÇÃO PERMANENTE DO IGARAPÉ SANTA ROSA</div>\n<div data-bbox=\"69 434 944 452\" data-label=\"Text\">E 20,9297 HA EM ÁREA DE RESERVA LEGAL, COM QUEIMA AO AR LIVRE EM 4,82 HA.</div>\n<div data-bbox=\"65 453 816 469\" data-label=\"Text\">COORDENADAS: 3°17&#x27;55.8&quot;S 52°22&#x27;58.3&quot;0, 3°17&#x27;55.1&quot;S 52°22&#x27;42.5&quot;0,</div>\n<div data-bbox=\"74 472 666 486\" data-label=\"Text\">3°18&#x27;11.3&quot;S 52°22&#x27;42.9&quot;0 E 3°18&#x27;11.9&quot;S 52°22&#x27;58.6&quot;0.</div>\n<div data-bbox=\"65 503 729 525\" data-label=\"Text\">CONFORME 0 AUTO DE CONSTATAÇÃO N°, 00318/2026 LAVRADO POR</div>\n<div data-bbox=\"92 523 614 538\" data-label=\"Text\">IVANDRO SAMPAIO CORREIA MATRÍCULA 162.407-1</div>\n<div data-bbox=\"57 556 317 569\" data-label=\"Text\">14 LEGISLAÇÃO INFRIGIDA/ARTIGO</div>\n<div data-bbox=\"94 568 877 589\" data-label=\"Text\">LEI MUNICIPAL N° 3.427/2022, ART. 241, INC. I E ART. 240, INC. XX.</div>\n<div data-bbox=\"93 590 488 608\" data-label=\"Text\">LEI FEDERAL N° 9.605/1998, ART. 50.</div>\n<div data-bbox=\"89 610 606 629\" data-label=\"Text\">DECRETO FEDERAL N° 6.514/2008, ART. 50 E 51.</div>\n<div data-bbox=\"53 656 918 674\" data-label=\"Text\">15 APÓS DECISÃO TOMADA EM REUNIÃO DA DIRETORIA DA SEMMA, REALIZADA EM: 17 / 03 / 2026 E</div>\n<div data-bbox=\"924 661 963 671\" data-label=\"Text\">FACE</div>\n<div data-bbox=\"51 677 964 692\" data-label=\"Text\">A ESTE AUTO DE INFRAÇÃO, A SEMMA APLICA A MULTA EQUIVALENTE A R$ 117.093,50 DE CONFORMIDADE</div>\n<div data-bbox=\"51 694 675 711\" data-label=\"Text\">COM A LEI N° 3.427/2022 C/C ART. 50 DO DECRETO FEDERAL N° 6.514/2008</div>\n<div data-bbox=\"50 714 515 733\" data-label=\"Text\">(R$ 5.000,00 POR HECTARE SOBRE 23,4187 HA)</div>\n<div data-bbox=\"51 732 826 752\" data-label=\"Text\">(CENTO E DEZESSETE MIL E NOVENTA E TRÊS REAIS E CINQUENTA CENTAVOS)</div>\n<div data-bbox=\"98 758 443 770\" data-label=\"Text\">16 ASSINATURA, CARIMBO E N° DA MATRÍCULA DO</div>\n<div data-bbox=\"589 760 885 771\" data-label=\"Text\">17 ASSINATURA DO SECRETÁRIO/CARIMBO</div>\n<div data-bbox=\"218 773 325 781\" data-label=\"Text\">AGENTE FISCAL</div>\n<div data-bbox=\"114 785 426 835\" data-label=\"Text\">A S. Correia</div>\n<div data-bbox=\"860 789 934 806\" data-label=\"Text\">SEMMA</div>\n<div data-bbox=\"592 794 831 844\" data-label=\"Text\">Edilson T.Mirandal</div>\n<div data-bbox=\"833 818 965 834\" data-label=\"Text\">Edilson Tavares Miranda</div>\n<div data-bbox=\"183 828 364 846\" data-label=\"Text\">Ivandro Sampaio Correia</div>\n<div data-bbox=\"829 830 971 845\" data-label=\"Text\">Secretário Municipal da Gestão</div>\n<div data-bbox=\"164 845 383 863\" data-label=\"Text\">Agente de Fiscalização Ambiental</div>\n<div data-bbox=\"857 843 947 855\" data-label=\"Text\">do Meio Ambiente</div>\n<div data-bbox=\"194 861 354 875\" data-label=\"Text\">Matrícula 162.407-1</div>\n<div data-bbox=\"880 856 928 867\" data-label=\"Text\">SEMMA</div>\n<div data-bbox=\"869 870 945 886\" data-label=\"Text\">Altamira PA</div>\n<div data-bbox=\"347 903 646 913\" data-label=\"Text\">Secretaria Municipal da Gestão do Meio Ambiente</div>\n<div data-bbox=\"274 915 727 925\" data-label=\"Text\">Rua Abel Figueiredo, N° 651, Bairro Aparecida, CEP: 68.377-395, Altamira/PA.</div>\n<div data-bbox=\"396 927 604 936\" data-label=\"Text\">E-mail: protocoloatm@hotmail.com</div>\n<div data-bbox=\"314 947 690 955\" data-label=\"Text\">DOCUMENTO FICTICIO DADOS SINTÉTICOS . SEM VALIDADE OFICIAL</div>\n<div data-bbox=\"831 974 880 994\" data-label=\"Text\">OFICAL</div>",
+  "regions": [
+    {
+      "id": "page-1-region-0001",
+      "text": "Prefeitura Municipal de Altamira",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        383,
+        66,
+        634,
+        83
+      ]
+    },
+    {
+      "id": "page-1-region-0002",
+      "text": "PREFEITURA DE",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        860,
+        66,
+        953,
+        77
+      ]
+    },
+    {
+      "id": "page-1-region-0003",
+      "text": "SEMMA",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        69,
+        69,
+        249,
+        104
+      ]
+    },
+    {
+      "id": "page-1-region-0004",
+      "text": "Secretaria Municipal da Gestão do Meio Ambiente",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        317,
+        88,
+        700,
+        104
+      ]
+    },
+    {
+      "id": "page-1-region-0005",
+      "text": "ALTAMIRA",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        837,
+        80,
+        977,
+        103
+      ]
+    },
+    {
+      "id": "page-1-region-0006",
+      "text": "SECRETARIA MUNICIPAL DA GESTÃO 00 MEIO AMBIENTE",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        69,
+        106,
+        248,
+        112
+      ]
+    },
+    {
+      "id": "page-1-region-0007",
+      "text": "RENOVAÇÃO, UNITO E TRABALHO",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        849,
+        103,
+        965,
+        111
+      ]
+    },
+    {
+      "id": "page-1-region-0008",
+      "text": "Setor de Fiscalização Ambiental",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        390,
+        108,
+        629,
+        124
+      ]
+    },
+    {
+      "id": "page-1-region-0009",
+      "text": "AUTO DE INFRAÇÃO COM A PENALIDADE DE MULTA N° 00092 ANO/ 2026",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        156,
+        151,
+        889,
+        174
+      ]
+    },
+    {
+      "id": "page-1-region-0010",
+      "text": "DADOS DO AUTUADO",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        440,
+        192,
+        597,
+        206
+      ]
+    },
+    {
+      "id": "page-1-region-0011",
+      "text": "1 NOME DO AUTUADO",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        72,
+        215,
+        220,
+        227
+      ]
+    },
+    {
+      "id": "page-1-region-0012",
+      "text": "JURANDIR NONATO BARBOSA DE SOUSA",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        97,
+        233,
+        583,
+        253
+      ]
+    },
+    {
+      "id": "page-1-region-0013",
+      "text": "2 ENDEREÇO",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        70,
+        261,
+        164,
+        276
+      ]
+    },
+    {
+      "id": "page-1-region-0014",
+      "text": "3 NÚMERO",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        772,
+        261,
+        847,
+        275
+      ]
+    },
+    {
+      "id": "page-1-region-0015",
+      "text": "TRAVESSA AGRÁRIA",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        112,
+        275,
+        339,
+        300
+      ]
+    },
+    {
+      "id": "page-1-region-0016",
+      "text": "1427",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        871,
+        273,
+        927,
+        293
+      ]
+    },
+    {
+      "id": "page-1-region-0017",
+      "text": "4 BAIRRO",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        69,
+        307,
+        139,
+        319
+      ]
+    },
+    {
+      "id": "page-1-region-0018",
+      "text": "5 . CEP",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        526,
+        310,
+        569,
+        323
+      ]
+    },
+    {
+      "id": "page-1-region-0019",
+      "text": "6 MUNICÍPIO",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        748,
+        307,
+        831,
+        321
+      ]
+    },
+    {
+      "id": "page-1-region-0020",
+      "text": "BRASÍLIA",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        119,
+        321,
+        214,
+        346
+      ]
+    },
+    {
+      "id": "page-1-region-0021",
+      "text": "68.372-140",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        575,
+        324,
+        686,
+        344
+      ]
+    },
+    {
+      "id": "page-1-region-0022",
+      "text": "ALTAMIRA PA",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        773,
+        324,
+        921,
+        346
+      ]
+    },
+    {
+      "id": "page-1-region-0023",
+      "text": "7 CNPJ/CPF",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        68,
+        356,
+        153,
+        369
+      ]
+    },
+    {
+      "id": "page-1-region-0024",
+      "text": "8 INSCRIÇÃO ESTADUAL",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        527,
+        356,
+        692,
+        372
+      ]
+    },
+    {
+      "id": "page-1-region-0025",
+      "text": "638.204.112-90",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        156,
+        373,
+        343,
+        395
+      ]
+    },
+    {
+      "id": "page-1-region-0026",
+      "text": "NÃO POSSUI",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        567,
+        373,
+        683,
+        396
+      ]
+    },
+    {
+      "id": "page-1-region-0027",
+      "text": "9 ATIVIDADE",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        67,
+        406,
+        157,
+        419
+      ]
+    },
+    {
+      "id": "page-1-region-0028",
+      "text": "AGROPECUÁRIA",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        173,
+        413,
+        324,
+        439
+      ]
+    },
+    {
+      "id": "page-1-region-0029",
+      "text": "10 LOCAL",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        67,
+        473,
+        142,
+        487
+      ]
+    },
+    {
+      "id": "page-1-region-0030",
+      "text": "11 DATA",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        482,
+        473,
+        547,
+        485
+      ]
+    },
+    {
+      "id": "page-1-region-0031",
+      "text": "12 HORA",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        772,
+        470,
+        839,
+        484
+      ]
+    },
+    {
+      "id": "page-1-region-0032",
+      "text": "TRAVESSÃO DA 27, KM 14, GLEBA ASSURINI,",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        75,
+        492,
+        452,
+        515
+      ]
+    },
+    {
+      "id": "page-1-region-0033",
+      "text": "ZONA RURAL DE ALTAMIRA",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        78,
+        516,
+        322,
+        533
+      ]
+    },
+    {
+      "id": "page-1-region-0034",
+      "text": "17/03/2026",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        521,
+        499,
+        634,
+        527
+      ]
+    },
+    {
+      "id": "page-1-region-0035",
+      "text": "14:10",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        843,
+        492,
+        904,
+        513
+      ]
+    },
+    {
+      "id": "page-1-region-0036",
+      "text": "13 DESCRIÇÃO DA IRREGULARIDADE",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        66,
+        564,
+        331,
+        582
+      ]
+    },
+    {
+      "id": "page-1-region-0037",
+      "text": "SUPRIMIR 23,4187 HA DE VEGETAÇÃO NATIVA SEM AUTORIZAÇÃO DO ÓRGÃO",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        100,
+        584,
+        916,
+        613
+      ]
+    },
+    {
+      "id": "page-1-region-0038",
+      "text": "AMBIENTAL COMPETENTE, NO IMÓVEL RURAL DENOMINADO FAZENDA NOVA ALIANÇA,",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        71,
+        614,
+        924,
+        642
+      ]
+    },
+    {
+      "id": "page-1-region-0039",
+      "text": "SENDO 2,489 HA EM ÁREA DE PRESERVAÇÃO PERMANENTE DO IGARAPÉ SANTA ROSA",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        69,
+        639,
+        950,
+        668
+      ]
+    },
+    {
+      "id": "page-1-region-0040",
+      "text": "E 20,9297 HA EM ÁREA DE RESERVA LEGAL, COM QUEIMA AO AR LIVRE EM 4,82 HA.",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        71,
+        667,
+        967,
+        694
+      ]
+    },
+    {
+      "id": "page-1-region-0041",
+      "text": "COORDENADAS: 3°17'55.8\"S 52°22'58.3\"0, 3°17'55.1\"S 52°22'42.5\"0,",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        67,
+        696,
+        836,
+        720
+      ]
+    },
+    {
+      "id": "page-1-region-0042",
+      "text": "3°18'11.3\"S 52°22'42.9\"0 E 3°18'11.9\"S 52°22'58.6\"0.",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        76,
+        725,
+        682,
+        746
+      ]
+    },
+    {
+      "id": "page-1-region-0043",
+      "text": "CONFORME 0 AUTO DE CONSTATAÇÃO N°, 00318/2026 LAVRADO POR",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        67,
+        773,
+        746,
+        806
+      ]
+    },
+    {
+      "id": "page-1-region-0044",
+      "text": "IVANDRO SAMPAIO CORREIA MATRÍCULA 162.407-1",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        94,
+        803,
+        629,
+        826
+      ]
+    },
+    {
+      "id": "page-1-region-0045",
+      "text": "14 LEGISLAÇÃO INFRIGIDA/ARTIGO",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        58,
+        854,
+        325,
+        874
+      ]
+    },
+    {
+      "id": "page-1-region-0046",
+      "text": "LEI MUNICIPAL N° 3.427/2022, ART. 241, INC. I E ART. 240, INC. XX.",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        96,
+        872,
+        898,
+        905
+      ]
+    },
+    {
+      "id": "page-1-region-0047",
+      "text": "LEI FEDERAL N° 9.605/1998, ART. 50.",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        95,
+        906,
+        500,
+        934
+      ]
+    },
+    {
+      "id": "page-1-region-0048",
+      "text": "DECRETO FEDERAL N° 6.514/2008, ART. 50 E 51.",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        91,
+        937,
+        621,
+        966
+      ]
+    },
+    {
+      "id": "page-1-region-0049",
+      "text": "15 APÓS DECISÃO TOMADA EM REUNIÃO DA DIRETORIA DA SEMMA, REALIZADA EM: 17 / 03 / 2026 E",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        54,
+        1008,
+        940,
+        1035
+      ]
+    },
+    {
+      "id": "page-1-region-0050",
+      "text": "FACE",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        946,
+        1015,
+        986,
+        1031
+      ]
+    },
+    {
+      "id": "page-1-region-0051",
+      "text": "A ESTE AUTO DE INFRAÇÃO, A SEMMA APLICA A MULTA EQUIVALENTE A R$ 117.093,50 DE CONFORMIDADE",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        52,
+        1040,
+        987,
+        1063
+      ]
+    },
+    {
+      "id": "page-1-region-0052",
+      "text": "COM A LEI N° 3.427/2022 C/C ART. 50 DO DECRETO FEDERAL N° 6.514/2008",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        52,
+        1066,
+        691,
+        1092
+      ]
+    },
+    {
+      "id": "page-1-region-0053",
+      "text": "(R$ 5.000,00 POR HECTARE SOBRE 23,4187 HA)",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        51,
+        1097,
+        527,
+        1126
+      ]
+    },
+    {
+      "id": "page-1-region-0054",
+      "text": "(CENTO E DEZESSETE MIL E NOVENTA E TRÊS REAIS E CINQUENTA CENTAVOS)",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        52,
+        1124,
+        846,
+        1155
+      ]
+    },
+    {
+      "id": "page-1-region-0055",
+      "text": "16 ASSINATURA, CARIMBO E N° DA MATRÍCULA DO",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        100,
+        1164,
+        454,
+        1183
+      ]
+    },
+    {
+      "id": "page-1-region-0056",
+      "text": "17 ASSINATURA DO SECRETÁRIO/CARIMBO",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        603,
+        1167,
+        906,
+        1184
+      ]
+    },
+    {
+      "id": "page-1-region-0057",
+      "text": "AGENTE FISCAL",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        223,
+        1187,
+        333,
+        1200
+      ]
+    },
+    {
+      "id": "page-1-region-0058",
+      "text": "A S. Correia",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        117,
+        1206,
+        436,
+        1283
+      ]
+    },
+    {
+      "id": "page-1-region-0059",
+      "text": "SEMMA",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        881,
+        1212,
+        956,
+        1238
+      ]
+    },
+    {
+      "id": "page-1-region-0060",
+      "text": "Edilson T.Mirandal",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        606,
+        1220,
+        851,
+        1296
+      ]
+    },
+    {
+      "id": "page-1-region-0061",
+      "text": "Edilson Tavares Miranda",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        853,
+        1256,
+        988,
+        1281
+      ]
+    },
+    {
+      "id": "page-1-region-0062",
+      "text": "Ivandro Sampaio Correia",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        187,
+        1272,
+        373,
+        1299
+      ]
+    },
+    {
+      "id": "page-1-region-0063",
+      "text": "Secretário Municipal da Gestão",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        849,
+        1275,
+        994,
+        1298
+      ]
+    },
+    {
+      "id": "page-1-region-0064",
+      "text": "Agente de Fiscalização Ambiental",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        168,
+        1298,
+        392,
+        1326
+      ]
+    },
+    {
+      "id": "page-1-region-0065",
+      "text": "do Meio Ambiente",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        878,
+        1295,
+        970,
+        1313
+      ]
+    },
+    {
+      "id": "page-1-region-0066",
+      "text": "Matrícula 162.407-1",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        199,
+        1322,
+        362,
+        1344
+      ]
+    },
+    {
+      "id": "page-1-region-0067",
+      "text": "SEMMA",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        901,
+        1315,
+        950,
+        1332
+      ]
+    },
+    {
+      "id": "page-1-region-0068",
+      "text": "Altamira PA",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        890,
+        1336,
+        968,
+        1361
+      ]
+    },
+    {
+      "id": "page-1-region-0069",
+      "text": "Secretaria Municipal da Gestão do Meio Ambiente",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        355,
+        1387,
+        662,
+        1402
+      ]
+    },
+    {
+      "id": "page-1-region-0070",
+      "text": "Rua Abel Figueiredo, N° 651, Bairro Aparecida, CEP: 68.377-395, Altamira/PA.",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        281,
+        1405,
+        744,
+        1421
+      ]
+    },
+    {
+      "id": "page-1-region-0071",
+      "text": "E-mail: protocoloatm@hotmail.com",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        406,
+        1424,
+        618,
+        1438
+      ]
+    },
+    {
+      "id": "page-1-region-0072",
+      "text": "DOCUMENTO FICTICIO DADOS SINTÉTICOS . SEM VALIDADE OFICIAL",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        322,
+        1455,
+        707,
+        1467
+      ]
+    },
+    {
+      "id": "page-1-region-0073",
+      "text": "OFICAL",
+      "page": 1,
+      "kind": "Text",
+      "bounding_box": [
+        851,
+        1496,
+        901,
+        1527
+      ]
+    }
+  ],
+  "model_version": "chandra-ocr-2.Q8_0+mmproj-f16",
+  "duration_ms": 5701,
+  "warnings": []
+}

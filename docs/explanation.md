@@ -13,7 +13,7 @@ flowchart LR
     Adapter --> Chandra[Local or remote Chandra]
     Adapter --> Textract[AWS Textract]
     Adapter --> API
-    API --> Mapper[Pending field mapper]
+    API --> Mapper[Local Portuguese rule mapper]
     Mapper --> Result[Structured JSON for review]
 ```
 
@@ -27,8 +27,9 @@ Chandra returns layout HTML. Textract returns line blocks with normalized geomet
    estimated paper illumination. Encode a lossless PNG and check its byte limit.
 3. Send the prepared image to the selected OCR backend through the adapter.
 4. Convert backend output into text and regions.
-5. Pass OCR content to field mapping.
-6. Return fields, confidence, review data, and warnings.
+5. Map explicit titles and labels using OCR text and source regions.
+6. Resolve conflicts, validate field formats, and return fields, heuristic
+   confidence, review evidence, and warnings. See [field mapping](field-mapping.md).
 
 Cleaning preserves dimensions after EXIF orientation, so OCR region coordinates
 stay aligned with the oriented document. CPU processing runs in a worker thread;

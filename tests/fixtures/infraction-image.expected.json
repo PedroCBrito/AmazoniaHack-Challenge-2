@@ -1,0 +1,32 @@
+{
+  "document_type": "infraction_notice",
+  "number": "00092",
+  "series": null,
+  "year": "2026",
+  "issued_date": "17/03/2026",
+  "issued_time": "14:10",
+  "municipality": "ALTAMIRA PA",
+  "agency": "Secretaria Municipal da Gestão do Meio Ambiente",
+  "parties": [
+    {"role": "cited_party", "name": "JURANDIR NONATO BARBOSA DE SOUSA", "document_id": "638.204.112-90", "address": "TRAVESSA AGRÁRIA\n1427\nBRASÍLIA\n68.372-140\nALTAMIRA PA"},
+    {"role": "issuer", "name": "Ivandro Sampaio Correia", "document_id": null, "address": null}
+  ],
+  "property_name": "FAZENDA NOVA ALIANÇA",
+  "car": null,
+  "coordinates": [
+    "3°17'55.8\"S 52°22'58.3\"0",
+    "3°17'55.1\"S 52°22'42.5\"0",
+    "3°18'11.3\"S 52°22'42.9\"0",
+    "3°18'11.9\"S 52°22'58.6\"0"
+  ],
+  "area_ha": 23.4187,
+  "legal_basis": [
+    "LEI MUNICIPAL N° 3.427/2022, ART. 241, INC. I E ART. 240, INC. XX.",
+    "LEI FEDERAL N° 9.605/1998, ART. 50.",
+    "DECRETO FEDERAL N° 6.514/2008, ART. 50 E 51."
+  ],
+  "fine_brl": 117093.50,
+  "references": [{"document_type": "finding_notice", "number": "00318", "year": "2026"}],
+  "officer_registration": "162.407-1",
+  "signatures": null
+}

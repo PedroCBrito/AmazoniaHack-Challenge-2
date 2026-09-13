@@ -103,12 +103,18 @@ async def test_extract_returns_complete_review_contract() -> None:
 
     assert response.status_code == 200
     body = response.json()
-    assert body["number"] is None
+    assert body["document_type"] == "infraction_notice"
+    assert body["number"] == "000123"
+    assert body["year"] == "2026"
     assert body["_meta"]["review_required"] is True
     assert body["_meta"]["ocr_model"] == "test-chandra"
-    assert body["_review"]["number"]["status"] == "not_processed"
-    assert body["confidence"]["number"] == 0.0
-    assert body["_warnings"][0]["code"] == "field_mapping_not_configured"
+    assert body["_meta"]["mapper_model"] == "portuguese-form-rules-v2"
+    assert body["_review"]["number"]["status"] == "extracted"
+    assert 0 < body["confidence"]["number"] < 1
+    assert body["_review"]["number"]["source_excerpt"] == "AUTO DE INFRAÇÃO Nº 000123/2026"
+    assert body["municipality"] is None
+    assert body["_review"]["municipality"]["status"] == "unknown"
+    assert all(warning["code"] != "field_mapping_not_configured" for warning in body["_warnings"])
 
 
 async def test_extract_rejects_unsupported_media_type() -> None:

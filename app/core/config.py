@@ -28,8 +28,6 @@ class Settings(BaseSettings):
     max_image_pixels: int = Field(default=40_000_000, ge=1)
     image_cleaning_enabled: bool = True
 
-    mapper_model: str = "pending"
-
 
 @lru_cache
 def get_settings() -> Settings:
