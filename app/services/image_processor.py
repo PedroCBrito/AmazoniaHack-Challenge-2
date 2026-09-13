@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import io
 import warnings
 from dataclasses import dataclass
@@ -23,11 +24,14 @@ class PreparedImage:
     filename: str
     width: int
     height: int
+    source_basename: str
+    source_sha256: str
 
 
 async def prepare_image(upload: UploadFile, settings: Settings) -> PreparedImage:
     """Read a bounded upload and prepare it off the event loop for OCR."""
     content_type = upload.content_type
+    source_basename = _safe_source_basename(upload.filename)
     try:
         if content_type not in ALLOWED_CONTENT_TYPES:
             raise ApplicationError(
@@ -42,7 +46,9 @@ async def prepare_image(upload: UploadFile, settings: Settings) -> PreparedImage
         raise ApplicationError(422, "invalid_image", "The uploaded image is empty.")
 
     worker = asyncio.create_task(
-        asyncio.to_thread(_prepare_image_bytes, content, content_type, settings)
+        asyncio.to_thread(
+            _prepare_image_bytes, content, content_type, source_basename, settings
+        )
     )
     try:
         return await asyncio.shield(worker)
@@ -61,7 +67,10 @@ async def prepare_image(upload: UploadFile, settings: Settings) -> PreparedImage
 
 
 def _prepare_image_bytes(
-    content: bytes, content_type: str, settings: Settings
+    content: bytes,
+    content_type: str,
+    source_basename: str,
+    settings: Settings,
 ) -> PreparedImage:
     """Validate before allocating cleaning buffers, then orient and encode."""
     try:
@@ -138,4 +147,12 @@ def _prepare_image_bytes(
         filename=safe_filename,
         width=normalized.width,
         height=normalized.height,
+        source_basename=source_basename,
+        source_sha256=hashlib.sha256(content).hexdigest(),
     )
+
+
+def _safe_source_basename(filename: str | None) -> str:
+    basename = (filename or "document").replace("\\", "/").rsplit("/", 1)[-1]
+    printable = "".join(character for character in basename if character.isprintable())
+    return printable.strip() or "document"

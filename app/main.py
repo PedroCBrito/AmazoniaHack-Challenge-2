@@ -10,11 +10,13 @@ from app.core.errors import register_error_handlers
 from app.services.extraction import ExtractionService
 from app.services.field_mapper import FieldMapper, LlamaCppFieldMapper
 from app.services.ocr_client import ChandraClient
+from app.services.ocr_store import OCRStore, SQLiteOCRStore
 
 
 def create_app(
     settings: Settings | None = None,
     field_mapper: FieldMapper | None = None,
+    ocr_store: OCRStore | None = None,
 ) -> FastAPI:
     settings = settings or get_settings()
 
@@ -36,12 +38,20 @@ def create_app(
                     settings.mapper_model,
                     settings.mapper_max_output_tokens,
                 )
+            active_store = ocr_store
+            if active_store is None:
+                sqlite_store = SQLiteOCRStore(settings.database_path)
+                await sqlite_store.initialize()
+                stack.push_async_callback(sqlite_store.close)
+                active_store = sqlite_store
             ocr_client = ChandraClient(ocr_http)
             app.state.ocr_client = ocr_client
+            app.state.ocr_store = active_store
             app.state.extraction_service = ExtractionService(
                 settings=settings,
                 ocr_client=ocr_client,
                 field_mapper=active_mapper,
+                ocr_store=active_store,
             )
             yield
 

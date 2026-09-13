@@ -31,7 +31,8 @@ ENV PATH="/opt/venv/bin:${PATH}" \
 
 RUN groupadd --system --gid 10001 app \
     && useradd --system --uid 10001 --gid app --no-create-home \
-        --home-dir /nonexistent --shell /usr/sbin/nologin app
+        --home-dir /nonexistent --shell /usr/sbin/nologin app \
+    && install -d --owner=app --group=app /data
 
 COPY --from=dependencies /opt/venv /opt/venv
 

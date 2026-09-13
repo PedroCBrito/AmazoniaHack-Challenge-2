@@ -8,6 +8,9 @@ class OCRRegion(BaseModel):
 
     id: str
     text: str | None = None
+    page: int = Field(default=1, ge=1)
+    kind: str | None = None
+    bounding_box: list[int] | None = Field(default=None, min_length=4, max_length=4)
 
 
 class OCRResult(BaseModel):
@@ -20,4 +23,3 @@ class OCRResult(BaseModel):
     model_version: str
     duration_ms: int = Field(ge=0)
     warnings: list[str] = Field(default_factory=list)
-

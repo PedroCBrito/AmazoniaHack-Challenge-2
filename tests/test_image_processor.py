@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import io
 import threading
 
@@ -57,6 +58,17 @@ async def test_disabled_cleaning_preserves_color_and_format(image_format, monkey
         assert decoded.format == image_format
         assert decoded.mode == "RGB"
         assert abs(decoded.getpixel((0, 0))[0] - 200) <= 2
+
+
+async def test_prepared_image_keeps_safe_original_identity() -> None:
+    upload = upload_image(Image.new("RGB", (40, 40), "white"))
+    upload.filename = "../../issued-notice.png"
+    original = upload.file.getvalue()
+
+    prepared = await prepare_image(upload, Settings(_env_file=None))
+
+    assert prepared.source_basename == "issued-notice.png"
+    assert prepared.source_sha256 == hashlib.sha256(original).hexdigest()
 
 
 @pytest.mark.parametrize("enabled", [True, False])

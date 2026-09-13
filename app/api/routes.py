@@ -40,6 +40,7 @@ async def health(request: Request) -> HealthResponse:
         415: {"model": ApiError, "description": "Unsupported image format"},
         422: {"model": ApiError, "description": "Invalid image or request"},
         429: {"model": ApiError, "description": "Processing capacity reached"},
+        500: {"model": ApiError, "description": "OCR persistence failure"},
         502: {"model": ApiError, "description": "Invalid dependency response"},
         503: {"model": ApiError, "description": "Required service unavailable"},
         504: {"model": ApiError, "description": "Processing deadline exceeded"},

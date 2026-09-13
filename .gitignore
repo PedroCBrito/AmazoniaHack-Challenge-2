@@ -28,6 +28,8 @@ Thumbs.db
 *.log
 uploads/
 outputs/
+data/
+*.sqlite*
 models/
 *.jpg
 *.jpeg
@@ -35,4 +37,3 @@ models/
 *.json
 !public/**/*.json
 !tests/fixtures/**/*.json
-
